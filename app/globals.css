@@ -26,3 +26,15 @@ body {
   background-color: #FAF8F5; /* beige-retro */
   color: #4A3721;            /* brown-dark */
 }
+
+@keyframes textFlicker {
+  0% { opacity: 0.9; }
+  5% { opacity: 1; }
+  10% { opacity: 0.8; }
+  15% { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+.terminal-hover:hover {
+  animation: textFlicker 0.2s infinite;
+}

@@ -5,98 +5,180 @@ import { auth, db, storage, ADMIN_UID } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
+interface TradeEntry {
+  pair: string;
+  pl: string;
+  confluences: string;
+  file: File | null;
+}
+
 export default function AdminDashboard() {
   const router = useRouter();
-  const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    asset: "NQ",
-    marketNarrative: "",
-    confluences: "",
-    outcome: "",
-  });
+  const [dailyBias, setDailyBias] = useState("");
+  const [news, setNews] = useState("");
+  const [trades, setTrades] = useState<TradeEntry[]>([{ pair: "EURUSD", pl: "", confluences: "", file: null }]);
 
-  // Client-Side Auth Guard
   useEffect(() => {
     const unsub = auth.onAuthStateChanged((user) => {
-      if (!user) {
-        console.error("No user detected, redirecting...");
-        router.push("/login");
-      } else if (user.uid !== ADMIN_UID) {
-        console.error("ACCESS DENIED: UID mismatch.");
-        alert("You do not have administrative privileges.");
-        router.push("/"); // Kick to public feed
-      } else {
-        console.log("Terminal Access Granted.");
-      }
+      if (!user || user.uid !== ADMIN_UID) router.push("/login");
     });
     return () => unsub();
   }, [router]);
 
+  const addTradeSlot = () => {
+    setTrades([...trades, { pair: "EURUSD", pl: "", confluences: "", file: null }]);
+  };
+
+  const handleTradeChange = (index: number, field: keyof TradeEntry, value: any) => {
+    const newTrades = [...trades];
+    (newTrades[index] as any)[field] = value;
+    setTrades(newTrades);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    console.log("--- SYNC START ---");
 
     try {
-      if (!auth.currentUser) throw new Error("Authentication failure.");
+      const processedTrades = await Promise.all(
+        trades.map(async (trade) => {
+          let url = "";
+          if (trade.file) {
+            const sRef = ref(storage, `charts/${Date.now()}-${trade.file.name}`);
+            const snap = await uploadBytes(sRef, trade.file);
+            url = await getDownloadURL(snap.ref);
+          }
+          return {
+            pair: trade.pair.toUpperCase(),
+            pl: Number(trade.pl),
+            confluences: trade.confluences,
+            chart_url: url,
+          };
+        })
+      );
 
-      let chart_url = "";
-      // Image Upload
-      if (file) {
-        console.log("Attempting Image Upload...");
-        const sRef = ref(storage, `charts/${Date.now()}-${file.name}`);
-        const snap = await uploadBytes(sRef, file);
-        chart_url = await getDownloadURL(snap.ref);
-        console.log("Image Upload Success:", chart_url);
-      }
-
-      // Firestore Write
-      console.log("Attempting Firestore Write...");
-      const docData = {
+      await addDoc(collection(db, "daily_logs"), {
         date: serverTimestamp(),
-        asset: formData.asset || "NQ",
-        context: { market_narrative: formData.marketNarrative || "No narrative" },
-        technical_execution: { confluences: formData.confluences || "No confluences" },
-        media: { chart_url },
-        review: { is_published: true, outcome: formData.outcome || "Pending" }
-      };
-      
-      const docRef = await addDoc(collection(db, "journal_entries"), docData);
-      console.log("FIRESTORE SUCCESS! ID:", docRef.id);
-      alert("Post Synced Successfully!");
+        daily_bias: dailyBias,
+        news_events: news,
+        trades: processedTrades,
+      });
+
+      alert("Daily Terminal Log Synced.");
       router.push("/");
-    } catch (err: any) {
-      console.error("Sync Error Details:", err.code, err.message);
-      alert(`Sync Failed: ${err.message}`);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-beige-retro text-brown-dark p-10 font-mono">
-      <div className="max-w-3xl mx-auto">
-        <header className="border-b-2 border-brown-medium pb-4 mb-8 flex justify-between items-end">
-          <h1 className="text-xl font-black text-brown-dark uppercase tracking-tighter">New_Log_Terminal</h1>
-          <p className="text-xs text-brown-medium uppercase">[AUTHENTICATED_SESSION]</p>
+    <div className="min-h-screen bg-beige-retro text-brown-dark p-6 md:p-12 font-mono">
+      <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8">
+        <header className="border-b-4 border-brown-dark pb-4 flex justify-between items-center">
+          <h1 className="text-2xl font-black uppercase">Daily_Session_Input</h1>
+          <button type="button" onClick={() => router.push("/")} className="text-xs border border-brown-dark px-2 py-1 hover:bg-brown-dark hover:text-brown-medium">EXIT_TO_FEED</button>
         </header>
 
-        <form onSubmit={handleSubmit} className="p-8 border-2 border-brown-dark bg-beige-muted shadow-2xl space-y-6">
-          <input className="w-full bg-beige-retro p-3 border border-brown-light focus:ring-2 focus:ring-brown-medium rounded" placeholder="Asset (e.g. NQ)" onChange={e => setFormData({...formData, asset: e.target.value.toUpperCase()})} />
-          <textarea className="w-full bg-beige-retro p-3 h-32 border border-brown-light focus:ring-2 focus:ring-brown-medium rounded" placeholder="Market Narrative (AMD Cycle context)..." onChange={e => setFormData({...formData, marketNarrative: e.target.value})} />
-          <textarea className="w-full bg-beige-retro p-3 h-32 border border-brown-light focus:ring-2 focus:ring-brown-medium rounded" placeholder="Technical Confluences (iFVG, SMT, Liquidity sweeps)..." onChange={e => setFormData({...formData, confluences: e.target.value})} />
-          
-          <div className="border border-brown-light bg-beige-retro p-4 rounded flex items-center justify-between">
-            <label className="text-sm font-bold text-brown-dark">// Upload Chart Screenshot</label>
-            <input type="file" onChange={e => setFile(e.target.files?.[0] || null)} className="block text-sm text-brown-medium file:mr-4 file:py-2 file:px-4 file:bg-brown-medium file:text-brown-medium file:border-0 file:rounded file:hover:bg-brown-dark cursor-pointer" />
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-widest">// Daily Bias</label>
+            <input 
+              className="w-full bg-beige-muted border-2 border-brown-dark p-3 outline-none focus:bg-brown-medium"
+              placeholder="e.g., BULLISH - HTF Liquidity Sweep"
+              onChange={(e) => setDailyBias(e.target.value)}
+            />
           </div>
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-widest">// Red Folder News</label>
+            <input 
+              className="w-full bg-beige-muted border-2 border-brown-dark p-3 outline-none focus:bg-brown-medium"
+              placeholder="e.g., 10:30PM USD CPI"
+              onChange={(e) => setNews(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <h2 className="text-lg font-black bg-brown-dark text-beige-retro px-4 py-1 inline-block uppercase tracking-tighter">Trades_List</h2>
           
-          <button disabled={loading} className="w-full bg-brown-dark p-4 font-bold text-brown-medium uppercase hover:bg-brown-medium transition-colors disabled:opacity-50">
-            {loading ? "SYNCING..." : "COMMIT TO DATABASE"}
+          {trades.map((trade, index) => (
+            <div key={index} className="p-6 border-2 border-brown-dark bg-beige-muted space-y-4 shadow-[4px_4px_0px_0px_rgba(74,55,33,1)]">
+              <div className="flex justify-between items-center border-b border-brown-light pb-2">
+                <span className="font-bold text-xs uppercase text-brown-medium">Trade_{index + 1}</span>
+              </div>
+              
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-4">
+                  <input 
+                    placeholder="Pair (e.g. EURUSD)"
+                    className="w-full bg-beige-retro border border-brown-light p-2 text-sm outline-none"
+                    value={trade.pair}
+                    onChange={(e) => handleTradeChange(index, "pair", e.target.value)}
+                  />
+                  <input 
+                    type="number" 
+                    step="0.01"
+                    placeholder="P/L (% Amount)"
+                    className="w-full bg-beige-retro border border-brown-light p-2 text-sm outline-none"
+                    onChange={(e) => handleTradeChange(index, "pl", e.target.value)}
+                  />
+                  <div className="border border-brown-light p-2 bg-beige-retro">
+                    <label className="block text-[10px] uppercase font-bold text-brown-medium mb-1">Chart_Screenshot</label>
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      className="text-[10px] w-full file:bg-brown-medium file:text-brown-medium file:border-0 file:p-1"
+                      onChange={(e) => handleTradeChange(index, "file", e.target.files?.[0])}
+                    />
+                  </div>
+                </div>
+                <textarea 
+                  placeholder="Confluences (iFVG, SMT, MSS...)"
+                  className="bg-beige-retro border border-brown-light p-3 text-sm outline-none h-full"
+                  onChange={(e) => handleTradeChange(index, "confluences", e.target.value)}
+                />
+              </div>
+            </div>
+          ))}
+
+          <button 
+            type="button" 
+            onClick={addTradeSlot}
+            className="w-full border-2 border-dashed border-brown-medium p-4 text-brown-medium hover:bg-brown-light hover:text-brown-medium transition-all uppercase font-bold text-sm"
+          >
+            + New Trade Slot
           </button>
-        </form>
-      </div>
+        </div>
+
+        <div className="relative group pt-10">
+    {/* The Static Shadow Layer */}
+    <div className="absolute inset-0 bg-brown-medium translate-x-3 translate-y-3 mt-10" />
+
+        {/* The Interactive Button Layer */}
+        <button
+            type="submit"
+            disabled={loading}
+            className={`
+            relative w-full p-6 border-4 border-brown-dark font-black text-xl uppercase tracking-[0.4em] transition-all
+            ${loading 
+                ? "bg-brown-medium text-beige-retro translate-x-2 translate-y-2" 
+                : "bg-brown-dark text-beige-retro hover:-translate-x-1 hover:-translate-y-1 active:translate-x-2 active:translate-y-2 shadow-none"}
+            `}
+        >
+            {loading ? (
+            <span className="flex items-center justify-center gap-3">
+                <span className="animate-pulse">_</span>
+                SYNCING_TO_MAINframe...
+            </span>
+            ) : (
+            "COMMIT_DAILY_LOG"
+            )}
+        </button>
+        </div>
+    </form>
     </div>
   );
 }
