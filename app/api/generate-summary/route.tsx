@@ -42,7 +42,7 @@ export async function POST(req: Request) {
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: 'white', border: `3px solid ${brown_dark}`, padding: '15px' }}>
               <span style={{ fontSize: 12, color: '#967451', fontWeight: 800 }}>NET RESULT</span>
               <span style={{ fontSize: 24, fontWeight: 900, marginTop: '5px', color: isProfitable ? '#15803d' : '#b91c1c' }}>
-                {isProfitable ? '+' : ''}{totalPL.toLocaleString()} USD
+                {isProfitable ? '+' : ''}{totalPL.toLocaleString()}%
               </span>
             </div>
           </div>
