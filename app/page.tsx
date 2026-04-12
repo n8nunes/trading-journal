@@ -45,17 +45,17 @@ export default function PublicFeed() {
         
         {/* Navigation Header */}
         <header className="border-b-4 border-brown-dark pb-6 mb-12 flex justify-between items-end">
-          <h1 className="text-3xl font-black tracking-tighter uppercase">Terminal_History</h1>
+          <h1 className="text-3xl font-black tracking-tighter uppercase">Trading_Journal</h1>
           <div className="flex border-2 border-brown-dark overflow-hidden bg-brown-medium">
             <button 
               onClick={() => { setView("list"); setSelectedDate(null); }}
-              className={`px-4 py-2 text-xs font-bold ${view === "list" ? "bg-brown-dark text-brown-medium" : "hover:bg-beige-muted"}`}
+              className={`px-4 py-2 text-xs font-black ${view === "list" ? "bg-brown-dark text-brown-medium" : "hover:bg-beige-muted"}`}
             >
               LIST
             </button>
             <button 
               onClick={() => setView("calendar")}
-              className={`px-4 py-2 text-xs font-bold border-l-2 border-brown-dark ${view === "calendar" ? "bg-brown-dark text-brown-medium" : "hover:bg-beige-muted"}`}
+              className={`px-4 py-2 text-xs font-black border-l-2 border-brown-dark ${view === "calendar" ? "bg-brown-dark text-brown-medium" : "hover:bg-beige-muted"}`}
             >
               CALENDAR
             </button>
@@ -102,7 +102,7 @@ export default function PublicFeed() {
                       ${isSelected ? "bg-brown-dark text-brown-medium ring-2 ring-offset-2 ring-brown-dark scale-105 z-10" : ""}
                     `}
                   >
-                    <span className="text-xs font-bold">{day}</span>
+                    <span className="text-xs font-black">{day}</span>
                     {hasLog && (
                       <span className={`text-[8px] absolute bottom-1 ${isSelected ? "text-beige-retro" : "text-brown-dark"}`}>
                         ●
@@ -118,7 +118,7 @@ export default function PublicFeed() {
               <div className="mt-6 text-center">
                 <button 
                   onClick={() => setSelectedDate(null)}
-                  className="text-[10px] border border-brown-dark px-3 py-1 uppercase font-bold hover:bg-brown-dark hover:text-brown-medium"
+                  className="text-[10px] border border-brown-dark px-3 py-1 uppercase font-black hover:bg-brown-dark hover:text-brown-medium"
                 >
                   Show All {viewDate.toLocaleString('default', { month: 'long' })} Entries
                 </button>
@@ -132,7 +132,7 @@ export default function PublicFeed() {
           {filteredLogs.length === 0 ? (
             <div className="border-4 border-dashed border-brown-light p-20 text-center bg-beige-muted/50">
               <p className="text-brown-medium font-black uppercase tracking-[0.2em]">
-                {selectedDate ? `No session logs for ${new Date(selectedDate).toLocaleDateString()}` : "No data synced to terminal."}
+                {selectedDate ? `No session logs for ${new Date(selectedDate).toLocaleDateString()}` : "No Entries."}
               </p>
             </div>
           ) : (
@@ -144,13 +144,13 @@ export default function PublicFeed() {
                     <span className="text-2xl font-black italic tracking-widest uppercase">
                       LOG_{log.date?.toDate().toLocaleDateString('en-GB')}
                     </span>
-                    <span className="text-[10px] border border-beige-retro px-2 py-1 uppercase font-bold opacity-70">
+                    <span className="text-[10px] border border-beige-retro px-2 py-1 uppercase font-black opacity-70">
                       {log.daily_bias}
                     </span>
                   </div>
                 </div>
                 
-                <div className="p-4 bg-brown-light/10 border-b border-brown-dark text-[10px] font-bold text-brown-dark uppercase flex gap-4">
+                <div className="p-4 bg-brown-light/10 border-b border-brown-dark text-[10px] font-black text-brown-dark uppercase flex gap-4">
                   <span className="text-red-800 tracking-tighter underline">HIGH_IMPACT_NEWS:</span>
                   <span>{log.news_events || "NONE_DETECTED"}</span>
                 </div>
@@ -177,7 +177,7 @@ export default function PublicFeed() {
                       )}
 
                       <div className="bg-beige-retro p-4 border border-brown-light text-xs leading-relaxed font-mono">
-                        <span className="block text-brown-medium font-bold mb-2 uppercase tracking-[0.2em]">// Confluences</span>
+                        <span className="block text-brown-medium font-black mb-2 uppercase tracking-[0.2em]">// Confluences</span>
                         {trade.confluences}
                       </div>
                     </div>

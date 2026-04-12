@@ -84,7 +84,7 @@ export default function AdminDashboard() {
 
         <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest">// Daily Bias</label>
+            <label className="text-xs font-black uppercase tracking-widest">// Daily Bias</label>
             <input 
               className="w-full bg-beige-muted border-2 border-brown-dark p-3 outline-none focus:bg-brown-medium"
               placeholder="e.g., BULLISH - HTF Liquidity Sweep"
@@ -92,7 +92,7 @@ export default function AdminDashboard() {
             />
           </div>
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest">// Red Folder News</label>
+            <label className="text-xs font-black uppercase tracking-widest">// Red Folder News</label>
             <input 
               className="w-full bg-beige-muted border-2 border-brown-dark p-3 outline-none focus:bg-brown-medium"
               placeholder="e.g., 10:30PM USD CPI"
@@ -107,7 +107,7 @@ export default function AdminDashboard() {
           {trades.map((trade, index) => (
             <div key={index} className="p-6 border-2 border-brown-dark bg-beige-muted space-y-4 shadow-[4px_4px_0px_0px_rgba(74,55,33,1)]">
               <div className="flex justify-between items-center border-b border-brown-light pb-2">
-                <span className="font-bold text-xs uppercase text-brown-medium">Trade_{index + 1}</span>
+                <span className="font-black text-xs uppercase text-brown-medium">Trade_{index + 1}</span>
               </div>
               
               <div className="grid md:grid-cols-2 gap-4">
@@ -126,7 +126,7 @@ export default function AdminDashboard() {
                     onChange={(e) => handleTradeChange(index, "pl", e.target.value)}
                   />
                   <div className="border border-brown-light p-2 bg-beige-retro">
-                    <label className="block text-[10px] uppercase font-bold text-brown-medium mb-1">Chart_Screenshot</label>
+                    <label className="block text-[10px] uppercase font-black text-brown-medium mb-1">Chart_Screenshot</label>
                     <input 
                       type="file" 
                       accept="image/*"
@@ -147,7 +147,7 @@ export default function AdminDashboard() {
           <button 
             type="button" 
             onClick={addTradeSlot}
-            className="w-full border-2 border-dashed border-brown-medium p-4 text-brown-medium hover:bg-brown-light hover:text-brown-medium transition-all uppercase font-bold text-sm"
+            className="w-full border-2 border-dashed border-brown-medium p-4 text-brown-medium hover:bg-brown-light hover:text-brown-medium transition-all uppercase font-black text-sm"
           >
             + New Trade Slot
           </button>
