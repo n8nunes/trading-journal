@@ -1,32 +1,42 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
 import { collection, query, orderBy, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, auth, ADMIN_UID } from "@/lib/firebase";
+import { useRouter } from "next/navigation";
 
 export default function PublicFeed() {
+  const router = useRouter();
   const [logs, setLogs] = useState<any[]>([]);
   const [view, setView] = useState<"list" | "calendar">("list");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   
   // State for navigating months
   const [viewDate, setViewDate] = useState(new Date());
 
   useEffect(() => {
+    // Auth listener for admin privileges
+    const unsub = auth.onAuthStateChanged((user) => {
+      setIsAdmin(user?.uid === ADMIN_UID);
+    });
+
     const fetchLogs = async () => {
       const q = query(collection(db, "daily_logs"), orderBy("date", "desc"));
       const querySnapshot = await getDocs(q);
       setLogs(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     };
+
     fetchLogs();
+    return () => unsub();
   }, []);
 
-  // Calculate daily P/L totals for the calendar view
+  // Calculate daily P/L totals for the calendar highlights
   const dailyStats = useMemo(() => {
     return logs.reduce((acc, log) => {
       const dateStr = log.date?.toDate().toDateString();
       if (dateStr) {
-        // Sum up P/L for all trades in a single log
-        const dayTotal = (log.trades || []).reduce((sum: number, t: any) => sum + (t.pl || 0), 0);
+        // Sum P/L for all trades within a specific log entry
+        const dayTotal = (log.trades || []).reduce((sum: number, t: any) => sum + (Number(t.pl) || 0), 0);
         acc[dateStr] = dayTotal;
       }
       return acc;
@@ -56,17 +66,30 @@ export default function PublicFeed() {
         
         {/* Navigation Header */}
         <header className="border-b-4 border-brown-dark pb-6 mb-12 flex justify-between items-end">
-          <h1 className="text-3xl font-black tracking-tighter uppercase">Trading_Journal</h1>
+          <div className="flex flex-col gap-2">
+            <h1 className="text-3xl font-black tracking-tighter uppercase">Trading_Journal</h1>
+            
+            {/* Admin Access Portal */}
+            {isAdmin && (
+              <button 
+                onClick={() => router.push("/admin")}
+                className="w-fit text-[10px] font-black bg-brown-dark text-beige-retro px-3 py-1 uppercase border-2 border-brown-dark hover:bg-brown-medium cursor-pointer transition-colors"
+              >
+                + Initialize_New_Log
+              </button>
+            )}
+          </div>
+
           <div className="flex border-2 border-brown-dark overflow-hidden bg-brown-medium">
             <button 
               onClick={() => { setView("list"); setSelectedDate(null); }}
-              className={`px-4 py-2 text-xs font-black ${view === "list" ? "bg-brown-dark text-brown-medium" : "hover:bg-beige-muted"}`}
+              className={`px-4 py-2 text-xs font-black cursor-pointer ${view === "list" ? "bg-brown-dark text-brown-medium" : "hover:bg-beige-muted text-brown-dark"}`}
             >
               LIST
             </button>
             <button 
               onClick={() => setView("calendar")}
-              className={`px-4 py-2 text-xs font-black border-l-2 border-brown-dark ${view === "calendar" ? "bg-brown-dark text-brown-medium" : "hover:bg-beige-muted"}`}
+              className={`px-4 py-2 text-xs font-black border-l-2 border-brown-dark cursor-pointer ${view === "calendar" ? "bg-brown-dark text-brown-medium" : "hover:bg-beige-muted text-brown-dark"}`}
             >
               CALENDAR
             </button>
@@ -78,11 +101,11 @@ export default function PublicFeed() {
             
             {/* Calendar Controls */}
             <div className="flex justify-between items-center mb-8">
-              <button onClick={() => changeMonth(-1)} className="hover:text-brown-medium font-black">{"< PREV"}</button>
+              <button onClick={() => changeMonth(-1)} className="hover:text-brown-medium font-black cursor-pointer">{"< PREV"}</button>
               <h2 className="text-xl font-black uppercase tracking-widest">
                 {viewDate.toLocaleString('default', { month: 'long' })} {year}
               </h2>
-              <button onClick={() => changeMonth(1)} className="hover:text-brown-medium font-black">{"NEXT >"}</button>
+              <button onClick={() => changeMonth(1)} className="hover:text-brown-medium font-black cursor-pointer">{"NEXT >"}</button>
             </div>
 
             {/* Calendar Grid */}
@@ -141,7 +164,7 @@ export default function PublicFeed() {
               <div className="mt-6 text-center">
                 <button 
                   onClick={() => setSelectedDate(null)}
-                  className="text-[10px] border border-brown-dark px-3 py-1 uppercase font-black hover:bg-brown-dark hover:text-brown-medium"
+                  className="text-[10px] border border-brown-dark px-3 py-1 uppercase font-black hover:bg-brown-dark hover:text-brown-medium cursor-pointer"
                 >
                   Show All {viewDate.toLocaleString('default', { month: 'long' })} Entries
                 </button>

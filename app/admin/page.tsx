@@ -137,7 +137,7 @@ export default function AdminDashboard() {
           <button 
             type="button" 
             onClick={() => router.push("/")} 
-            className="text-[10px] border border-brown-dark px-2 py-1 hover:bg-brown-dark hover:text-beige-retro transition-colors"
+            className="text-[10px] cursor-pointer border border-brown-dark px-2 py-1 hover:bg-brown-dark hover:text-beige-retro transition-colors"
           >
             ABORT_TO_FEED
           </button>
@@ -201,7 +201,7 @@ export default function AdminDashboard() {
                     <input 
                       type="file" 
                       accept="image/*"
-                      className="text-[10px] w-full file:bg-brown-dark file:text-beige-retro file:border-0 file:px-2 file:py-1 file:mr-4 file:uppercase file:font-black cursor-pointer"
+                      className="text-[10px] w-full border border-brown-light file:bg-brown-dark file:text-beige-retro file:border-0 file:px-2 file:py-1 file:mr-4 file:uppercase file:font-black cursor-pointer"
                       onChange={(e) => handleTradeChange(index, "file", e.target.files?.[0])}
                     />
                   </div>
@@ -220,7 +220,7 @@ export default function AdminDashboard() {
           <button 
             type="button" 
             onClick={addTradeSlot}
-            className="w-full border-2 border-dashed border-brown-medium p-4 text-brown-medium hover:bg-brown-dark hover:text-beige-retro transition-all uppercase font-black text-xs tracking-widest"
+            className="w-full border-2 border-dashed border-brown-medium p-4 text-brown-medium hover:bg-brown-dark hover:text-beige-retro transition-all uppercase font-black text-xs cursor-pointer tracking-widest"
           >
             + Initialize_New_Execution_Slot
           </button>
@@ -233,7 +233,7 @@ export default function AdminDashboard() {
             type="submit"
             disabled={loading}
             className={`
-              relative w-full p-6 border-4 border-brown-dark font-black text-xl uppercase tracking-[0.4em] transition-all
+              relative cursor-pointer w-full p-6 border-4 border-brown-dark font-black text-xl uppercase tracking-[0.4em] transition-all
               ${loading 
                 ? "bg-brown-medium text-beige-retro translate-x-2 translate-y-2 cursor-wait" 
                 : "bg-brown-dark text-beige-retro hover:-translate-x-1 hover:-translate-y-1 active:translate-x-2 active:translate-y-2 shadow-none"}
