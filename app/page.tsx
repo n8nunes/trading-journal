@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
 import { collection, query, orderBy, getDocs } from "firebase/firestore";
-import { db, auth, ADMIN_UID } from "@/lib/firebase";
+import { db, auth, ADMIN_UID } from "@/lib/firebase"; //
 import { useRouter } from "next/navigation";
 
 export default function PublicFeed() {
@@ -10,13 +10,14 @@ export default function PublicFeed() {
   const [view, setView] = useState<"list" | "calendar">("list");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Added state to track login status
   
-  // State for navigating months
   const [viewDate, setViewDate] = useState(new Date());
 
   useEffect(() => {
-    // Auth listener for admin privileges
+    // Auth listener updated to track both general login and admin privileges
     const unsub = auth.onAuthStateChanged((user) => {
+      setIsLoggedIn(!!user);
       setIsAdmin(user?.uid === ADMIN_UID);
     });
 
@@ -78,8 +79,17 @@ export default function PublicFeed() {
                 + Initialize_New_Log
               </button>
             )}
-          </div>
 
+            {/* Login Button for Guests */}
+            {!isLoggedIn && (
+              <button 
+                onClick={() => router.push("/login")}
+                className="w-fit text-[10px] font-black bg-brown-dark text-beige-retro px-3 py-1 uppercase border-2 border-brown-dark hover:bg-brown-medium cursor-pointer transition-colors"
+              >
+                LOGIN_TO_TERMINAL
+              </button>
+            )}
+          </div>
           <div className="flex border-2 border-brown-dark overflow-hidden bg-brown-medium">
             <button 
               onClick={() => { setView("list"); setSelectedDate(null); }}

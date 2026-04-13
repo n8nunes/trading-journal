@@ -39,7 +39,7 @@ export default function LoginPage() {
         <button 
           onClick={handleLogin} 
           disabled={isLoggingIn}
-          className={`bg-brown-dark text-brown-medium px-10 py-5 font-bold uppercase hover:bg-brown-medium transition-all ${isLoggingIn ? 'opacity-50' : 'opacity-100'}`}
+          className={`bg-brown-dark border border-brown cursor-pointer text-brown-medium px-10 py-5 font-bold uppercase hover:bg-brown-medium transition-all ${isLoggingIn ? 'opacity-50' : 'opacity-100'}`}
         >
           {isLoggingIn ? "ESTABLISHING CONNECTION..." : "ACCESS_TERMINAL"}
         </button>
