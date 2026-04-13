@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
 import { collection, query, orderBy, getDocs } from "firebase/firestore";
-import { db, auth, ADMIN_UID } from "@/lib/firebase"; //
+import { db, auth, ADMIN_UID } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 
 export default function PublicFeed() {
@@ -10,12 +10,16 @@ export default function PublicFeed() {
   const [view, setView] = useState<"list" | "calendar">("list");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Added state to track login status
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   
+  // State for expanding/collapsing logs
+  const [expandedLogs, setExpandedLogs] = useState<Record<string, boolean>>({});
+  
+  // State for navigating months
   const [viewDate, setViewDate] = useState(new Date());
 
   useEffect(() => {
-    // Auth listener updated to track both general login and admin privileges
+    // Auth listener for admin and login status
     const unsub = auth.onAuthStateChanged((user) => {
       setIsLoggedIn(!!user);
       setIsAdmin(user?.uid === ADMIN_UID);
@@ -31,14 +35,16 @@ export default function PublicFeed() {
     return () => unsub();
   }, []);
 
-  // Calculate daily P/L totals for the calendar highlights
+  // FIXED: Calculate daily P/L totals by summing across ALL logs for that day
   const dailyStats = useMemo(() => {
     return logs.reduce((acc, log) => {
       const dateStr = log.date?.toDate().toDateString();
       if (dateStr) {
-        // Sum P/L for all trades within a specific log entry
-        const dayTotal = (log.trades || []).reduce((sum: number, t: any) => sum + (Number(t.pl) || 0), 0);
-        acc[dateStr] = dayTotal;
+        // Sum P/L for all trades within THIS specific log entry
+        const entryTotal = (log.trades || []).reduce((sum: number, t: any) => sum + (Number(t.pl) || 0), 0);
+        
+        // FIX: Add this entry's total to any existing total for this date
+        acc[dateStr] = (acc[dateStr] || 0) + entryTotal;
       }
       return acc;
     }, {} as Record<string, number>);
@@ -47,16 +53,21 @@ export default function PublicFeed() {
   // Calendar Helpers
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
-  
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const firstDayOfMonth = new Date(year, month, 1).getDay(); // 0 (Sun) to 6 (Sat)
+  const firstDayOfMonth = new Date(year, month, 1).getDay();
   
   const changeMonth = (offset: number) => {
     setViewDate(new Date(year, month + offset, 1));
-    setSelectedDate(null); // Clear selection when flipping pages
+    setSelectedDate(null);
   };
 
-  // Filter logs based on selection
+  const toggleLog = (logId: string) => {
+    setExpandedLogs(prev => ({
+      ...prev,
+      [logId]: !prev[logId]
+    }));
+  };
+
   const filteredLogs = logs.filter(log => 
     !selectedDate || log.date?.toDate().toDateString() === selectedDate
   );
@@ -70,26 +81,26 @@ export default function PublicFeed() {
           <div className="flex flex-col gap-2">
             <h1 className="text-3xl font-black tracking-tighter uppercase">Trading_Journal</h1>
             
-            {/* Admin Access Portal */}
-            {isAdmin && (
-              <button 
-                onClick={() => router.push("/admin")}
-                className="w-fit text-[10px] font-black bg-brown-dark text-beige-retro px-3 py-1 uppercase border-2 border-brown-dark hover:bg-brown-medium cursor-pointer transition-colors"
-              >
-                + Initialize_New_Log
-              </button>
-            )}
-
-            {/* Login Button for Guests */}
-            {!isLoggedIn && (
-              <button 
-                onClick={() => router.push("/login")}
-                className="w-fit text-[10px] font-black bg-brown-dark text-beige-retro px-3 py-1 uppercase border-2 border-brown-dark hover:bg-brown-medium cursor-pointer transition-colors"
-              >
-                LOGIN_TO_TERMINAL
-              </button>
-            )}
+            <div className="flex gap-2">
+              {isAdmin && (
+                <button 
+                  onClick={() => router.push("/admin")}
+                  className="w-fit text-[10px] font-black bg-brown-dark text-beige-retro px-3 py-1 uppercase border-2 border-brown-dark hover:bg-brown-medium cursor-pointer transition-colors"
+                >
+                  + Initialize_New_Log
+                </button>
+              )}
+              {!isLoggedIn && (
+                <button 
+                  onClick={() => router.push("/login")}
+                  className="w-fit text-[10px] font-black bg-brown-dark text-beige-retro px-3 py-1 uppercase border-2 border-brown-dark hover:bg-brown-medium cursor-pointer transition-colors"
+                >
+                  LOGIN_TO_TERMINAL
+                </button>
+              )}
+            </div>
           </div>
+
           <div className="flex border-2 border-brown-dark overflow-hidden bg-brown-medium">
             <button 
               onClick={() => { setView("list"); setSelectedDate(null); }}
@@ -108,8 +119,6 @@ export default function PublicFeed() {
 
         {view === "calendar" && (
           <div className="bg-beige-muted border-2 border-brown-dark p-8 shadow-[8px_8px_0px_0px_rgba(74,55,33,1)] mb-12">
-            
-            {/* Calendar Controls */}
             <div className="flex justify-between items-center mb-8">
               <button onClick={() => changeMonth(-1)} className="hover:text-brown-medium font-black cursor-pointer">{"< PREV"}</button>
               <h2 className="text-xl font-black uppercase tracking-widest">
@@ -118,23 +127,19 @@ export default function PublicFeed() {
               <button onClick={() => changeMonth(1)} className="hover:text-brown-medium font-black cursor-pointer">{"NEXT >"}</button>
             </div>
 
-            {/* Calendar Grid */}
             <div className="grid grid-cols-7 gap-2 mb-4 text-center text-[10px] font-black uppercase text-brown-medium">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => <div key={d}>{d}</div>)}
             </div>
             
             <div className="grid grid-cols-7 gap-2">
-              {/* Empty spaces for start of month */}
               {Array.from({ length: firstDayOfMonth }).map((_, i) => (
                 <div key={`empty-${i}`} className="aspect-square border border-transparent"></div>
               ))}
               
-              {/* Actual Days */}
               {Array.from({ length: daysInMonth }).map((_, i) => {
                 const day = i + 1;
                 const dateObj = new Date(year, month, day);
                 const dateString = dateObj.toDateString();
-                
                 const hasLog = dateString in dailyStats;
                 const totalPl = dailyStats[dateString] || 0;
                 const isProfitable = totalPl > 0;
@@ -169,7 +174,6 @@ export default function PublicFeed() {
               })}
             </div>
 
-            {/* Selected Date Reset */}
             {selectedDate && (
               <div className="mt-6 text-center">
                 <button 
@@ -183,7 +187,6 @@ export default function PublicFeed() {
           </div>
         )}
 
-        {/* The Feed Section */}
         <div className="space-y-16">
           {filteredLogs.length === 0 ? (
             <div className="border-4 border-dashed border-brown-light p-20 text-center bg-beige-muted/50">
@@ -192,55 +195,70 @@ export default function PublicFeed() {
               </p>
             </div>
           ) : (
-            filteredLogs.map((log) => (
-              <article key={log.id} className="border-2 border-brown-dark bg-beige-muted shadow-[8px_8px_0px_0px_rgba(74,55,33,1)]">
-                {/* Session Header */}
-                <div className="bg-brown-dark text-beige-retro p-4 flex justify-between items-center">
-                  <div className="flex items-center gap-4">
-                    <span className="text-2xl font-black italic tracking-widest uppercase">
-                      LOG_{log.date?.toDate().toLocaleDateString('en-GB')}
-                    </span>
-                    <span className="text-[10px] border border-beige-retro px-2 py-1 uppercase font-black opacity-70">
-                      {log.daily_bias}
+            filteredLogs.map((log, index) => {
+              const isExpanded = expandedLogs[log.id] || false;
+              return (
+                <article 
+                  key={log.id} 
+                  className="border-2 border-brown-dark bg-beige-muted shadow-[8px_8px_0px_0px_rgba(74,55,33,1)] animate-in"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <div 
+                    className="bg-brown-dark text-beige-retro p-4 flex justify-between items-center cursor-pointer hover:bg-brown-medium transition-colors terminal-hover"
+                    onClick={() => toggleLog(log.id)}
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className="text-2xl font-black italic tracking-widest uppercase">
+                        LOG_{log.date?.toDate().toLocaleDateString('en-GB')}
+                      </span>
+                      <span className="text-[10px] border border-beige-retro px-2 py-1 uppercase font-black opacity-70">
+                        {log.daily_bias}
+                      </span>
+                    </div>
+                    <span className="text-xl font-black">
+                      {isExpanded ? "[—]" : "[+]"}
                     </span>
                   </div>
-                </div>
-                
-                <div className="p-4 bg-brown-light/10 border-b border-brown-dark text-[10px] font-black text-brown-dark uppercase flex gap-4">
-                  <span className="text-red-800 tracking-tighter underline">HIGH_IMPACT_NEWS:</span>
-                  <span>{log.news_events || "NONE_DETECTED"}</span>
-                </div>
-
-                <div className="p-6 space-y-12">
-                  {log.trades?.map((trade: any, idx: number) => (
-                    <div key={idx} className="border-l-4 border-brown-dark pl-6 space-y-4">
-                      <div className="flex justify-between items-end border-b border-brown-light pb-2">
-                        <h3 className="text-3xl font-black uppercase tracking-tighter">{trade.pair}</h3>
-                        <span className={`text-lg font-black ${trade.pl >= 0 ? "text-green-800" : "text-red-800"}`}>
-                          {trade.pl >= 0 ? "P/L: +" : "P/L: "}{trade.pl.toLocaleString()}%
-                        </span>
+                  
+                  <div className={`log-content-wrapper ${isExpanded ? 'expanded' : ''}`}>
+                    <div className="log-content-inner">
+                      <div className="p-4 bg-brown-light/10 border-b border-brown-dark text-[10px] font-black text-brown-dark uppercase flex gap-4">
+                        <span className="text-red-800 tracking-tighter underline">HIGH_IMPACT_NEWS:</span>
+                        <span>{log.news_events || "NONE_DETECTED"}</span>
                       </div>
 
-                      {trade.chart_url && (
-                        <div className="border-2 border-brown-dark bg-brown-medium overflow-hidden shadow-sm">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img 
-                            src={trade.chart_url} 
-                            alt="Analysis" 
-                            className="w-full h-auto grayscale-[0.3] hover:grayscale-0 transition-all duration-700"
-                          />
-                        </div>
-                      )}
+                      <div className="p-6 space-y-12">
+                        {log.trades?.map((trade: any, idx: number) => (
+                          <div key={idx} className="border-l-4 border-brown-dark pl-6 space-y-4">
+                            <div className="flex justify-between items-end border-b border-brown-light pb-2">
+                              <h3 className="text-3xl font-black uppercase tracking-tighter">{trade.pair}</h3>
+                              <span className={`text-lg font-black ${trade.pl >= 0 ? "text-green-800" : "text-red-800"}`}>
+                                {trade.pl >= 0 ? "P/L: +" : "P/L: "}{trade.pl.toLocaleString()}%
+                              </span>
+                            </div>
 
-                      <div className="bg-beige-retro p-4 border border-brown-light text-xs leading-relaxed font-mono">
-                        <span className="block text-brown-medium font-black mb-2 uppercase tracking-[0.2em]">// Confluences</span>
-                        {trade.confluences}
+                            {trade.chart_url && (
+                              <div className="border-2 border-brown-dark bg-brown-medium overflow-hidden shadow-sm">
+                                <img 
+                                  src={trade.chart_url} 
+                                  alt="Analysis" 
+                                  className="w-full h-auto grayscale-[0.3] hover:grayscale-0 transition-all duration-700"
+                                />
+                              </div>
+                            )}
+
+                            <div className="bg-beige-retro p-4 border border-brown-light text-xs leading-relaxed font-mono">
+                              <span className="block text-brown-medium font-black mb-2 uppercase tracking-[0.2em]">// Confluences</span>
+                              {trade.confluences}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  ))}
-                </div>
-              </article>
-            ))
+                  </div>
+                </article>
+              );
+            })
           )}
         </div>
       </div>
