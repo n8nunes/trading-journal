@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { collection, query, orderBy, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -20,6 +20,19 @@ export default function PublicFeed() {
     fetchLogs();
   }, []);
 
+  // Calculate daily P/L totals for the calendar view
+  const dailyStats = useMemo(() => {
+    return logs.reduce((acc, log) => {
+      const dateStr = log.date?.toDate().toDateString();
+      if (dateStr) {
+        // Sum up P/L for all trades in a single log
+        const dayTotal = (log.trades || []).reduce((sum: number, t: any) => sum + (t.pl || 0), 0);
+        acc[dateStr] = dayTotal;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+  }, [logs]);
+
   // Calendar Helpers
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
@@ -31,8 +44,6 @@ export default function PublicFeed() {
     setViewDate(new Date(year, month + offset, 1));
     setSelectedDate(null); // Clear selection when flipping pages
   };
-
-  const logDates = logs.map(l => l.date?.toDate().toDateString());
 
   // Filter logs based on selection
   const filteredLogs = logs.filter(log => 
@@ -90,7 +101,11 @@ export default function PublicFeed() {
                 const day = i + 1;
                 const dateObj = new Date(year, month, day);
                 const dateString = dateObj.toDateString();
-                const hasLog = logDates.includes(dateString);
+                
+                const hasLog = dateString in dailyStats;
+                const totalPl = dailyStats[dateString] || 0;
+                const isProfitable = totalPl > 0;
+                const isNegative = totalPl < 0;
                 const isSelected = selectedDate === dateString;
                 
                 return (
@@ -98,14 +113,22 @@ export default function PublicFeed() {
                     key={day}
                     onClick={() => hasLog && setSelectedDate(dateString)}
                     className={`aspect-square border flex flex-col items-center justify-center transition-all relative
-                      ${hasLog ? "border-brown-dark bg-brown-light/40 cursor-pointer hover:bg-brown-light" : "border-brown-light/30 opacity-40 cursor-not-allowed"}
+                      ${hasLog 
+                        ? isProfitable 
+                          ? "border-green-800 bg-green-100/40 cursor-pointer hover:bg-green-200/60" 
+                          : isNegative 
+                            ? "border-red-800 bg-red-100/40 cursor-pointer hover:bg-red-200/60"
+                            : "border-brown-dark bg-brown-light/40 cursor-pointer hover:bg-brown-light"
+                        : "border-brown-light/30 opacity-40 cursor-not-allowed"}
                       ${isSelected ? "bg-brown-dark text-brown-medium ring-2 ring-offset-2 ring-brown-dark scale-105 z-10" : ""}
                     `}
                   >
                     <span className="text-xs font-black">{day}</span>
                     {hasLog && (
-                      <span className={`text-[8px] absolute bottom-1 ${isSelected ? "text-beige-retro" : "text-brown-dark"}`}>
-                        ●
+                      <span className={`text-[8px] font-bold mt-1 ${
+                        isSelected ? "text-beige-retro" : isProfitable ? "text-green-800" : isNegative ? "text-red-800" : "text-brown-dark"
+                      }`}>
+                        {totalPl > 0 ? "+" : ""}{totalPl.toFixed(1)}%
                       </span>
                     )}
                   </div>
