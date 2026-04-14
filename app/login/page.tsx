@@ -8,11 +8,11 @@ export default function LoginPage() {
   const router = useRouter();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const [targetTraderId, setTargetTraderId] = useState("");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
+        // We default to the feed if they are already logged in, but they can navigate to /view manually
         router.push("/"); 
       } else {
         setIsCheckingAuth(false);
@@ -31,7 +31,6 @@ export default function LoginPage() {
       provider.setCustomParameters({ prompt: 'select_account' });
       await signInWithPopup(auth, provider);
       
-      // If authenticating to view a specific trader, route there. Otherwise, route to own dashboard.
       router.push(redirectRoute);
     } catch (e: any) {
       if (e.code !== 'auth/cancelled-popup-request') {
@@ -75,31 +74,19 @@ export default function LoginPage() {
         <div className="text-center w-full max-w-md p-8 border-2 border-brown-dark shadow-[8px_8px_0px_0px_rgba(74,55,33,1)] bg-beige-muted">
           <h1 className="text-3xl font-black text-brown-dark mb-4 tracking-tighter uppercase">Viewer_Access</h1>
           <p className="text-xs text-brown-medium mb-10 font-bold uppercase tracking-widest border-b-2 border-brown-medium pb-4">
-            // Access a Shared Journal
+            // Access Shared Journals
           </p>
           
-          <div className="flex flex-col gap-4">
-            <input 
-              type="text" 
-              value={targetTraderId}
-              onChange={(e) => setTargetTraderId(e.target.value)}
-              placeholder="ENTER_TRADER_ID" 
-              className="w-full bg-transparent border-2 border-brown-dark p-4 text-brown-dark font-black uppercase placeholder:text-brown-medium/50 focus:outline-none focus:ring-2 focus:ring-brown-dark focus:bg-beige-retro transition-colors"
-            />
-            <button 
-              onClick={() => {
-                if (!targetTraderId) alert("Please enter a Trader ID first.");
-                else handleLogin(`/view/${targetTraderId}`);
-              }}
-              disabled={isLoggingIn}
-              className="w-full bg-transparent border-2 border-brown-dark text-brown-dark px-6 py-5 font-black uppercase hover:bg-brown-dark hover:text-beige-retro transition-all cursor-pointer"
-            >
-              VERIFY_GOOGLE_ID_&_VIEW
-            </button>
-          </div>
+          <button 
+            onClick={() => handleLogin("/view")}
+            disabled={isLoggingIn}
+            className="w-full bg-transparent border-2 border-brown-dark text-brown-dark px-6 py-5 font-black uppercase hover:bg-brown-dark hover:text-beige-retro transition-all cursor-pointer"
+          >
+            VERIFY_GOOGLE_ID
+          </button>
           
           <p className="mt-6 text-[10px] font-black uppercase text-brown-medium">
-            // Required for invite-only access
+            // View authorized accounts
           </p>
         </div>
       </div>
