@@ -1,62 +1,47 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
-import { collection, query, orderBy, where, getDocs } from "firebase/firestore";
-import { db, auth, ADMIN_UID } from "@/lib/firebase";
-import { useRouter } from "next/navigation";
+import { collection, query, orderBy, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { useRouter, useParams } from "next/navigation";
 
-export default function PublicFeed() {
+export default function ViewerFeed() {
   const router = useRouter();
+  const params = useParams();
+  const token = params.token; // You can use this later to filter logs by a specific user's token
+  
   const [logs, setLogs] = useState<any[]>([]);
   const [view, setView] = useState<"list" | "calendar">("list");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  
-  // NEW: Add a loading state to prevent layout flashing
   const [isLoading, setIsLoading] = useState(true);
-  
-  // State for expanding/collapsing logs
   const [expandedLogs, setExpandedLogs] = useState<Record<string, boolean>>({});
-  
-  // State for navigating months
   const [viewDate, setViewDate] = useState(new Date());
 
   useEffect(() => {
-    // Auth listener for admin and login status
-    const unsub = auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        setIsLoggedIn(true);
-        setIsAdmin(user.uid === ADMIN_UID);
+    const fetchLogs = async () => {
+      try {
+        // NOTE: Once Phase 4 (Multi-tenancy) is complete, you will update this query 
+        // to filter by the token so the viewer only sees that specific trader's logs:
+        // const q = query(collection(db, "daily_logs"), where("shareToken", "==", token), orderBy("date", "desc"));
         
-        // Only fetch logs if the user is authenticated
-        const q = query(
-                    collection(db, "daily_logs"), 
-                    where("userId", "==", user.uid), // <-- THIS IS THE FIX
-                    orderBy("date", "desc")
-        );
+        const q = query(collection(db, "daily_logs"), orderBy("date", "desc"));
         const querySnapshot = await getDocs(q);
         setLogs(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        
-        // Remove loading screen ONLY after logs are fetched
+      } catch (error) {
+        console.error("Failed to load logs", error);
+      } finally {
         setIsLoading(false);
-      } else {
-        // Force redirect to login if no active session
-        router.push("/login");
       }
-    });
+    };
 
-    return () => unsub();
-  }, [router]);
+    fetchLogs();
+  }, [token]);
 
   // Calculate daily P/L totals by summing across ALL logs for that day
   const dailyStats = useMemo(() => {
     return logs.reduce((acc, log) => {
       const dateStr = log.date?.toDate().toDateString();
       if (dateStr) {
-        // Sum P/L for all trades within THIS specific log entry
         const entryTotal = (log.trades || []).reduce((sum: number, t: any) => sum + (Number(t.pl) || 0), 0);
-        
-        // Add this entry's total to any existing total for this date
         acc[dateStr] = (acc[dateStr] || 0) + entryTotal;
       }
       return acc;
@@ -85,13 +70,12 @@ export default function PublicFeed() {
     !selectedDate || log.date?.toDate().toDateString() === selectedDate
   );
 
-  // NEW: Render the retro loading screen while checking auth and fetching data
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-beige-retro font-mono">
         <div className="text-center p-8 border-2 border-brown-dark shadow-[8px_8px_0px_0px_rgba(74,55,33,1)] bg-beige-muted">
           <p className="text-brown-dark font-black tracking-widest uppercase animate-pulse">
-            // DECRYPTING_JOURNAL_DATA...
+            // ACCESSING_PUBLIC_RECORDS...
           </p>
         </div>
       </div>
@@ -106,25 +90,15 @@ export default function PublicFeed() {
         <header className="border-b-4 border-brown-dark pb-6 mb-12 flex justify-between items-end">
           <div className="flex flex-col gap-2">
             <h1 className="text-3xl font-black tracking-tighter uppercase">Trading_Journal</h1>
-            
-            <div className="flex gap-2">
-              {isAdmin && (
-                <>
-                  <button 
-                    onClick={() => router.push("/admin/settings")}
-                    className="w-fit text-[10px] font-black bg-beige-retro text-brown-dark px-3 py-1 uppercase border-2 border-brown-dark hover:bg-brown-dark hover:text-beige-retro cursor-pointer transition-colors"
-                  >
-                    [ ACCESS_SETTINGS ]
-                  </button>
-                  <button 
-                    onClick={() => router.push("/admin")}
-                    className="w-fit text-[10px] font-black bg-brown-dark text-beige-retro px-3 py-1 uppercase border-2 border-brown-dark hover:bg-brown-medium cursor-pointer transition-colors"
-                  >
-                    + Initialize_New_Log
-                  </button>
-                </>
-              )}
+            <div className="flex gap-2 text-[10px] font-black uppercase text-brown-medium">
+              // READ_ONLY_VIEWER_MODE // TOKEN: {token}
             </div>
+            <button 
+              onClick={() => router.push("/login")}
+              className="mt-2 w-fit text-[10px] font-black text-brown-dark px-2 py-1 uppercase border border-brown-dark hover:bg-brown-dark hover:text-beige-retro cursor-pointer transition-colors"
+            >
+              {"< RETURN_TO_LOGIN"}
+            </button>
           </div>
 
           <div className="flex border-2 border-brown-dark overflow-hidden bg-brown-medium">
