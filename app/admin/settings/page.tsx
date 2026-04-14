@@ -34,13 +34,15 @@ export default function AccessSettings() {
   }, [router]);
 
   // Save Settings to Database
+  // Save Settings to Database
   const saveAccessSettings = async (newVis: string, emails: string[]) => {
     if (!auth.currentUser) return;
     setIsSavingAccess(true);
     try {
       await setDoc(doc(db, "users", auth.currentUser.uid), { 
         visibility: newVis,
-        invitedEmails: emails
+        invitedEmails: emails,
+        traderEmail: auth.currentUser.email
       }, { merge: true });
     } catch (error) {
       console.error("Failed to save settings:", error);
