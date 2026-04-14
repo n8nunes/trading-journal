@@ -28,7 +28,7 @@ export default function AdminDashboard() {
     { pair: "EURUSD", pl: "", confluences: "", file: null }
   ]);
 
-  // Auth Guard: Ensure only you (the Admin) can access this terminal
+  // Auth Guard
   useEffect(() => {
     const unsub = auth.onAuthStateChanged((user) => {
       if (!user || user.uid !== ADMIN_UID) {
@@ -53,7 +53,6 @@ export default function AdminDashboard() {
     setLoading(true);
 
     try {
-      // 1. UPLOAD PIPELINE: Process individual trade screenshots
       const processedTrades = await Promise.all(
         trades.map(async (trade) => {
           let url = "";
@@ -71,16 +70,16 @@ export default function AdminDashboard() {
         })
       );
 
-      // 2. ARCHIVE PIPELINE: Save initial log to Firestore
+      // IMPORTANT: We still attach the userId here so the Firestore Security Rules work
       const docRef = await addDoc(collection(db, "daily_logs"), {
+        userId: auth.currentUser?.uid,
         date: serverTimestamp(),
         daily_bias: dailyBias,
         news_events: news,
         trades: processedTrades,
-        summary_card_url: "", // Placeholder for the generated card
+        summary_card_url: "", 
       });
 
-      // 3. GENERATION PIPELINE: Trigger @vercel/og to create the Session Card
       const dateStr = new Date().toLocaleDateString('en-GB');
       const genResponse = await fetch('/api/generate-summary', {
         method: 'POST',
@@ -95,18 +94,15 @@ export default function AdminDashboard() {
 
       if (!genResponse.ok) throw new Error('OG_GENERATION_FAILED');
 
-      // 4. STORAGE PIPELINE: Upload the generated PNG back to Firebase
       const imageBlob = await genResponse.blob();
       const summaryRef = ref(storage, `summaries/${docRef.id}.png`);
       const imageSnap = await uploadBytes(summaryRef, imageBlob, { contentType: 'image/png' });
       const summaryUrl = await getDownloadURL(imageSnap.ref);
 
-      // 5. UPDATE PIPELINE: Sync the URL back to the Firestore document
       await updateDoc(doc(db, "daily_logs", docRef.id), {
         summary_card_url: summaryUrl,
       });
 
-      // 6. BROADCAST PIPELINE: Send final data to Discord Webhook
       await fetch('/api/discord', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -131,16 +127,18 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-beige-retro text-brown-dark p-6 md:p-12 font-mono">
       <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8">
         
-        {/* Terminal Header */}
-        <header className="border-b-4 border-brown-dark pb-4 flex justify-between items-center">
+        {/* Terminal Header with Settings Link */}
+        <header className="border-b-4 border-brown-dark pb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <h1 className="text-2xl font-black uppercase tracking-tighter">nfx // Session_Input_Terminal</h1>
-          <button 
-            type="button" 
-            onClick={() => router.push("/")} 
-            className="text-[10px] cursor-pointer border border-brown-dark px-2 py-1 hover:bg-brown-dark hover:text-beige-retro transition-colors"
-          >
-            ABORT_TO_FEED
-          </button>
+          <div className="flex gap-2">
+            <button 
+              type="button" 
+              onClick={() => router.push("/")} 
+              className="text-[10px] cursor-pointer border border-brown-dark px-3 py-1 hover:bg-brown-dark hover:text-beige-retro transition-colors font-black"
+            >
+              ABORT_TO_FEED
+            </button>
+          </div>
         </header>
 
         {/* Global Context Inputs */}
@@ -216,7 +214,6 @@ export default function AdminDashboard() {
             </div>
           ))}
 
-          {/* Add Trade Button */}
           <button 
             type="button" 
             onClick={addTradeSlot}
