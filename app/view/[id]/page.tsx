@@ -151,9 +151,77 @@ export default function ViewerFeed() {
           </div>
         </header>
 
-        {/* ... The rest of your Calendar and Feed rendering logic remains exactly the same ... */}
-        
-        {/* Placeholder to ensure copy-paste works perfectly. Paste your existing Calendar and filteredLogs mapping here. */}
+        {/* RESTORED CALENDAR RENDER BLOCK */}
+        {view === "calendar" && (
+          <div className="bg-beige-muted border-2 border-brown-dark p-8 shadow-[8px_8px_0px_0px_rgba(74,55,33,1)] mb-12">
+            <div className="flex justify-between items-center mb-8">
+              <button onClick={() => changeMonth(-1)} className="hover:text-brown-medium font-black cursor-pointer">{"< PREV"}</button>
+              <h2 className="text-xl font-black uppercase tracking-widest">
+                {viewDate.toLocaleString('default', { month: 'long' })} {year}
+              </h2>
+              <button onClick={() => changeMonth(1)} className="hover:text-brown-medium font-black cursor-pointer">{"NEXT >"}</button>
+            </div>
+
+            <div className="grid grid-cols-7 gap-2 mb-4 text-center text-[10px] font-black uppercase text-brown-medium">
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => <div key={d}>{d}</div>)}
+            </div>
+            
+            <div className="grid grid-cols-7 gap-2">
+              {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+                <div key={`empty-${i}`} className="aspect-square border border-transparent"></div>
+              ))}
+              
+              {Array.from({ length: daysInMonth }).map((_, i) => {
+                const day = i + 1;
+                const dateObj = new Date(year, month, day);
+                const dateString = dateObj.toDateString();
+                const hasLog = dateString in dailyStats;
+                const totalPl = dailyStats[dateString] || 0;
+                const isProfitable = totalPl > 0;
+                const isNegative = totalPl < 0;
+                const isSelected = selectedDate === dateString;
+                
+                return (
+                  <div 
+                    key={day}
+                    onClick={() => hasLog && setSelectedDate(dateString)}
+                    className={`aspect-square border flex flex-col items-center justify-center transition-all relative
+                      ${hasLog 
+                        ? isProfitable 
+                          ? "border-green-800 bg-green-100/40 cursor-pointer hover:bg-green-200/60" 
+                          : isNegative 
+                            ? "border-red-800 bg-red-100/40 cursor-pointer hover:bg-red-200/60"
+                            : "border-brown-dark bg-brown-light/40 cursor-pointer hover:bg-brown-light"
+                        : "border-brown-light/30 opacity-40 cursor-not-allowed"}
+                      ${isSelected ? "bg-brown-dark text-brown-medium ring-2 ring-offset-2 ring-brown-dark scale-105 z-10" : ""}
+                    `}
+                  >
+                    <span className="text-xs font-black">{day}</span>
+                    {hasLog && (
+                      <span className={`text-[8px] font-bold mt-1 ${
+                        isSelected ? "text-beige-retro" : isProfitable ? "text-green-800" : isNegative ? "text-red-800" : "text-brown-dark"
+                      }`}>
+                        {totalPl > 0 ? "+" : ""}{totalPl.toFixed(1)}%
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {selectedDate && (
+              <div className="mt-6 text-center">
+                <button 
+                  onClick={() => setSelectedDate(null)}
+                  className="text-[10px] border border-brown-dark px-3 py-1 uppercase font-black hover:bg-brown-dark hover:text-brown-medium cursor-pointer"
+                >
+                  Show All {viewDate.toLocaleString('default', { month: 'long' })} Entries
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="space-y-16">
           {filteredLogs.length === 0 ? (
             <div className="border-4 border-dashed border-brown-light p-20 text-center bg-beige-muted/50">
