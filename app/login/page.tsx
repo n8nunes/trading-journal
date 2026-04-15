@@ -1,96 +1,108 @@
 "use client";
-import { auth } from "@/lib/firebase";
-import { GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "firebase/auth";
-import { useRouter } from "next/navigation";
+
 import { useState, useEffect } from "react";
+import { auth, ADMIN_UID } from "@/lib/firebase";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAttempting, setIsAttempting] = useState(false);
 
+  // Listen for auth state changes to route users automatically
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsub = auth.onAuthStateChanged((user) => {
       if (user) {
-        // We default to the feed if they are already logged in, but they can navigate to /view manually
-        router.push("/"); 
+        // Route based on Admin UID match
+        if (user.uid === ADMIN_UID) {
+          router.push("/dashboard");
+        } else {
+          router.push("/view");
+        }
       } else {
-        setIsCheckingAuth(false);
+        setIsLoading(false);
       }
     });
-    return () => unsubscribe();
+    return () => unsub();
   }, [router]);
 
-  // Unified Google Login
-  const handleLogin = async (redirectRoute: string) => {
-    if (isLoggingIn) return; 
-    setIsLoggingIn(true);
-
+  const handleGoogleLogin = async () => {
+    if (isAttempting) return;
+    setIsAttempting(true);
+    setError("");
+    
     try {
       const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: 'select_account' });
       await signInWithPopup(auth, provider);
-      
-      router.push(redirectRoute);
-    } catch (e: any) {
-      if (e.code !== 'auth/cancelled-popup-request') {
-        console.error("error.", e);
-      }
-      setIsLoggingIn(false);
+      // We don't need a router.push() here because the onAuthStateChanged 
+      // listener above will detect the login and route them perfectly.
+    } catch (err: any) {
+      console.error("Login error:", err);
+      setError("AUTHENTICATION_FAILED: " + (err.message || "Unknown Error"));
+      setIsAttempting(false);
     }
   };
 
-  if (isCheckingAuth) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-beige-retro font-mono">
-        <p className="text-brown-dark font-black tracking-widest uppercase animate-pulse">ESTABLISHING_CONNECTION...</p>
+        <div className="text-center p-8 border-2 border-brown-dark shadow-[8px_8px_0px_0px_rgba(74,55,33,1)] bg-beige-muted">
+          <p className="text-brown-dark font-black tracking-widest uppercase animate-pulse">
+            // AUTHENTICATING_SESSION...
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-beige-retro font-mono">
+    <div className="min-h-screen bg-beige-retro flex flex-col items-center justify-center p-6 font-mono text-brown-dark">
       
-      {/* LEFT SIDE - TRADERS */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-12 border-b-4 md:border-b-0 md:border-r-4 border-brown-dark bg-beige-muted">
-        <div className="text-center w-full max-w-md p-8 border-2 border-brown-dark shadow-[8px_8px_0px_0px_rgba(74,55,33,1)] bg-beige-retro">
-          <h1 className="text-3xl font-black text-brown-dark mb-4 tracking-tighter uppercase">Trader_Terminal</h1>
-          <p className="text-xs text-brown-medium mb-10 font-bold uppercase tracking-widest border-b-2 border-brown-medium pb-4">
-            // Manage Your Journal
+      {/* Global Error Display */}
+      {error && (
+        <div className="mb-6 w-full max-w-4xl p-4 border-2 border-red-800 bg-red-100/40 text-red-800 text-sm font-black uppercase tracking-widest text-center shadow-[4px_4px_0px_0px_rgba(153,27,27,1)]">
+          {error}
+        </div>
+      )}
+
+      {/* Split Login Container */}
+      <div className="w-full max-w-5xl border-4 border-brown-dark flex flex-col md:flex-row shadow-[12px_12px_0px_0px_rgba(74,55,33,1)]">
+        
+        {/* Trader Side (Left / Top) */}
+        <div className="flex-1 p-10 md:p-16 bg-brown-dark text-beige-retro border-b-4 md:border-b-0 md:border-r-4 border-brown-dark flex flex-col items-center justify-center text-center">
+          <h2 className="text-4xl font-black uppercase tracking-tighter mb-2">TRADER_LOGIN</h2>
+          <p className="text-xs font-black uppercase tracking-widest text-brown-medium mb-12">
+            // ADMIN_ACCESS_ONLY
           </p>
           
-          <button 
-            onClick={() => handleLogin("/")} 
-            disabled={isLoggingIn}
-            className={`w-full bg-brown-dark border border-brown cursor-pointer text-beige-retro px-6 py-5 font-bold uppercase hover:bg-brown-medium transition-all ${isLoggingIn ? 'opacity-50' : 'opacity-100'}`}
+          <button
+            onClick={handleGoogleLogin}
+            disabled={isAttempting}
+            className="w-full max-w-xs bg-beige-retro text-brown-dark border-2 border-beige-retro p-4 text-sm font-black uppercase tracking-widest hover:bg-brown-medium hover:border-brown-medium hover:text-beige-retro cursor-pointer transition-colors disabled:opacity-50"
           >
-            {isLoggingIn ? "AUTHENTICATING..." : "LOGIN_WITH_GOOGLE"}
+            {isAttempting ? "[ PROCESSING... ]" : "[ GOOGLE_AUTH ]"}
           </button>
         </div>
-      </div>
 
-      {/* RIGHT SIDE - VIEWERS */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-12 bg-beige-retro">
-        <div className="text-center w-full max-w-md p-8 border-2 border-brown-dark shadow-[8px_8px_0px_0px_rgba(74,55,33,1)] bg-beige-muted">
-          <h1 className="text-3xl font-black text-brown-dark mb-4 tracking-tighter uppercase">Viewer_Access</h1>
-          <p className="text-xs text-brown-medium mb-10 font-bold uppercase tracking-widest border-b-2 border-brown-medium pb-4">
-            // Access Shared Journals
+        {/* Viewer Side (Right / Bottom) */}
+        <div className="flex-1 p-10 md:p-16 bg-beige-muted text-brown-dark flex flex-col items-center justify-center text-center">
+          <h2 className="text-4xl font-black uppercase tracking-tighter mb-2">VIEWER_LOGIN</h2>
+          <p className="text-xs font-black uppercase tracking-widest text-brown-medium mb-12">
+            // GUESTS_&_PUBLIC_ACCESS
           </p>
           
-          <button 
-            onClick={() => handleLogin("/view")}
-            disabled={isLoggingIn}
-            className="w-full bg-transparent border-2 border-brown-dark text-brown-dark px-6 py-5 font-black uppercase hover:bg-brown-dark hover:text-beige-retro transition-all cursor-pointer"
+          <button
+            onClick={handleGoogleLogin}
+            disabled={isAttempting}
+            className="w-full max-w-xs bg-brown-dark text-beige-retro border-2 border-brown-dark p-4 text-sm font-black uppercase tracking-widest hover:bg-brown-medium cursor-pointer transition-colors disabled:opacity-50"
           >
-            VERIFY_GOOGLE_ID
+            {isAttempting ? "[ PROCESSING... ]" : "[ GOOGLE_AUTH ]"}
           </button>
-          
-          <p className="mt-6 text-[10px] font-black uppercase text-brown-medium">
-            // View authorized accounts
-          </p>
         </div>
-      </div>
 
+      </div>
     </div>
   );
 }

@@ -12,35 +12,28 @@ export default function PublicFeed() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   
-  // NEW: Add a loading state to prevent layout flashing
   const [isLoading, setIsLoading] = useState(true);
   
-  // State for expanding/collapsing logs
   const [expandedLogs, setExpandedLogs] = useState<Record<string, boolean>>({});
   
-  // State for navigating months
   const [viewDate, setViewDate] = useState(new Date());
 
   useEffect(() => {
-    // Auth listener for admin and login status
     const unsub = auth.onAuthStateChanged(async (user) => {
       if (user) {
         setIsLoggedIn(true);
         setIsAdmin(user.uid === ADMIN_UID);
         
-        // Only fetch logs if the user is authenticated
         const q = query(
                     collection(db, "daily_logs"), 
-                    where("userId", "==", user.uid), // <-- THIS IS THE FIX
+                    where("userId", "==", user.uid), 
                     orderBy("date", "desc")
         );
         const querySnapshot = await getDocs(q);
         setLogs(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
         
-        // Remove loading screen ONLY after logs are fetched
         setIsLoading(false);
       } else {
-        // Force redirect to login if no active session
         router.push("/login");
       }
     });
@@ -48,22 +41,17 @@ export default function PublicFeed() {
     return () => unsub();
   }, [router]);
 
-  // Calculate daily P/L totals by summing across ALL logs for that day
   const dailyStats = useMemo(() => {
     return logs.reduce((acc, log) => {
       const dateStr = log.date?.toDate().toDateString();
       if (dateStr) {
-        // Sum P/L for all trades within THIS specific log entry
         const entryTotal = (log.trades || []).reduce((sum: number, t: any) => sum + (Number(t.pl) || 0), 0);
-        
-        // Add this entry's total to any existing total for this date
         acc[dateStr] = (acc[dateStr] || 0) + entryTotal;
       }
       return acc;
     }, {} as Record<string, number>);
   }, [logs]);
 
-  // Calendar Helpers
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -85,7 +73,6 @@ export default function PublicFeed() {
     !selectedDate || log.date?.toDate().toDateString() === selectedDate
   );
 
-  // NEW: Render the retro loading screen while checking auth and fetching data
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-beige-retro font-mono">
@@ -110,6 +97,12 @@ export default function PublicFeed() {
             <div className="flex gap-2">
               {isAdmin && (
                 <>
+                  <button 
+                    onClick={() => router.push("/dashboard")}
+                    className="w-fit text-[10px] font-black bg-beige-retro text-brown-dark px-3 py-1 uppercase border-2 border-brown-dark hover:bg-brown-dark hover:text-beige-retro cursor-pointer transition-colors"
+                  >
+                    [ VIEW_DASHBOARD ]
+                  </button>
                   <button 
                     onClick={() => router.push("/admin/settings")}
                     className="w-fit text-[10px] font-black bg-beige-retro text-brown-dark px-3 py-1 uppercase border-2 border-brown-dark hover:bg-brown-dark hover:text-beige-retro cursor-pointer transition-colors"
