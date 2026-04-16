@@ -58,7 +58,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-beige-retro flex flex-col items-center justify-center p-6 font-mono text-brown-dark">
+    <div className="min-h-screen bg-beige-retro flex flex-col items-center justify-center p-6 font-mono text-brown-dark animate-fade-in-up">
       
       {/* Global Error Display */}
       {error && (
@@ -80,7 +80,7 @@ export default function LoginPage() {
           <button
             onClick={handleGoogleLogin}
             disabled={isAttempting}
-            className="w-full max-w-xs bg-beige-retro text-brown-dark border-2 border-beige-retro p-4 text-sm font-black uppercase tracking-widest hover:bg-brown-medium hover:border-brown-medium hover:text-beige-retro cursor-pointer transition-colors disabled:opacity-50"
+            className="w-full max-w-xs bg-beige-retro text-brown-dark border-2 border-brown-dark p-4 text-sm font-black uppercase tracking-widest cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(180,165,145,1)] hover:bg-brown-medium hover:border-brown-medium hover:text-beige-retro active:translate-y-0 active:shadow-none disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
           >
             {isAttempting ? "[ PROCESSING... ]" : "[ GOOGLE_AUTH ]"}
           </button>
@@ -96,7 +96,7 @@ export default function LoginPage() {
           <button
             onClick={handleGoogleLogin}
             disabled={isAttempting}
-            className="w-full max-w-xs bg-brown-dark text-beige-retro border-2 border-brown-dark p-4 text-sm font-black uppercase tracking-widest hover:bg-brown-medium cursor-pointer transition-colors disabled:opacity-50"
+            className="w-full max-w-xs bg-brown-dark text-beige-retro border-2 border-brown-dark p-4 text-sm font-black uppercase tracking-widest cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] hover:bg-brown-medium active:translate-y-0 active:shadow-none disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
           >
             {isAttempting ? "[ PROCESSING... ]" : "[ GOOGLE_AUTH ]"}
           </button>

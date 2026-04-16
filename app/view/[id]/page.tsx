@@ -129,22 +129,30 @@ export default function ViewerFeed() {
             </div>
             <button 
               onClick={() => router.push("/view")}
-              className="mt-2 w-fit text-[10px] font-black text-brown-dark px-2 py-1 uppercase border border-brown-dark hover:bg-brown-dark hover:text-beige-retro cursor-pointer transition-colors"
+              className="mt-2 w-fit text-[10px] font-black text-brown-dark px-2 py-1 uppercase border-2 border-brown-dark cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] hover:bg-brown-dark hover:text-beige-retro active:translate-y-0 active:shadow-none"
             >
               {"< RETURN_TO_HUB"}
             </button>
           </div>
 
-          <div className="flex border-2 border-brown-dark overflow-hidden bg-brown-medium">
+          <div className="flex border-2 border-brown-dark overflow-hidden w-fit shadow-[4px_4px_0px_0px_rgba(74,55,33,1)]">
             <button 
               onClick={() => { setView("list"); setSelectedDate(null); }}
-              className={`px-4 py-2 text-xs font-black cursor-pointer ${view === "list" ? "bg-brown-dark text-brown-medium" : "hover:bg-beige-muted text-brown-dark"}`}
+              className={`px-4 py-2 text-xs font-black cursor-pointer uppercase transition-all duration-150 ${
+                view === "list" 
+                  ? "bg-brown-dark text-brown-medium shadow-[inset_3px_3px_0px_0px_rgba(30,20,10,0.5)]" 
+                  : "bg-brown-medium text-brown-dark hover:bg-beige-muted"
+              }`}
             >
               LIST
             </button>
             <button 
               onClick={() => setView("calendar")}
-              className={`px-4 py-2 text-xs font-black border-l-2 border-brown-dark cursor-pointer ${view === "calendar" ? "bg-brown-dark text-brown-medium" : "hover:bg-beige-muted text-brown-dark"}`}
+              className={`px-4 py-2 text-xs font-black cursor-pointer uppercase border-l-2 border-brown-dark transition-all duration-150 ${
+                view === "calendar" 
+                  ? "bg-brown-dark text-brown-medium shadow-[inset_3px_3px_0px_0px_rgba(30,20,10,0.5)]" 
+                  : "bg-brown-medium text-brown-dark hover:bg-beige-muted"
+              }`}
             >
               CALENDAR
             </button>
@@ -153,7 +161,7 @@ export default function ViewerFeed() {
 
         {/* RESTORED CALENDAR RENDER BLOCK */}
         {view === "calendar" && (
-          <div className="bg-beige-muted border-2 border-brown-dark p-8 shadow-[8px_8px_0px_0px_rgba(74,55,33,1)] mb-12">
+          <div className="bg-beige-muted border-2 border-brown-dark p-8 shadow-[8px_8px_0px_0px_rgba(74,55,33,1)] mb-12 animate-fade-in-up">
             <div className="flex justify-between items-center mb-8">
               <button onClick={() => changeMonth(-1)} className="hover:text-brown-medium font-black cursor-pointer">{"< PREV"}</button>
               <h2 className="text-xl font-black uppercase tracking-widest">
@@ -222,9 +230,9 @@ export default function ViewerFeed() {
           </div>
         )}
 
-        <div className="space-y-16">
+        <div key={`view-${view}-${selectedDate || 'all'}`} className="space-y-16">
           {filteredLogs.length === 0 ? (
-            <div className="border-4 border-dashed border-brown-light p-20 text-center bg-beige-muted/50">
+            <div className="border-4 border-dashed border-brown-light p-20 text-center bg-beige-muted/50 animate-fade-in-up">
               <p className="text-brown-medium font-black uppercase tracking-[0.2em]">
                 {selectedDate ? `No session logs for ${new Date(selectedDate).toLocaleDateString()}` : "No Entries."}
               </p>
@@ -235,7 +243,7 @@ export default function ViewerFeed() {
               return (
                 <article 
                   key={log.id} 
-                  className="border-2 border-brown-dark bg-beige-muted shadow-[8px_8px_0px_0px_rgba(74,55,33,1)] animate-in"
+                  className="border-2 border-brown-dark bg-beige-muted shadow-[8px_8px_0px_0px_rgba(74,55,33,1)] animate-in transition-all duration-300 hover:-translate-y-1 hover:shadow-[12px_12px_0px_0px_rgba(74,55,33,1)]"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div 

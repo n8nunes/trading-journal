@@ -218,7 +218,7 @@ export default function PublicFeed() {
           </div>
         )}
 
-        <div className="space-y-16">
+        <div key={`feed-${view}-${selectedDate || 'all'}`} className="space-y-16">
           {filteredLogs.length === 0 ? (
             <div className="border-4 border-dashed border-brown-light p-20 text-center bg-beige-muted/50 animate-fade-in-up">
               <p className="text-brown-medium font-black uppercase tracking-[0.2em]">

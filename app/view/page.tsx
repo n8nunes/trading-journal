@@ -64,7 +64,7 @@ export default function ViewerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-beige-retro text-brown-dark p-6 md:p-12 font-mono flex items-center justify-center">
+    <div className="min-h-screen bg-beige-retro text-brown-dark p-6 md:p-12 font-mono flex items-center justify-center animate-fade-in-up">
       <div className="w-full max-w-2xl border-2 border-brown-dark bg-beige-muted p-8 shadow-[8px_8px_0px_0px_rgba(74,55,33,1)]">
         
         <header className="border-b-2 border-brown-dark pb-4 mb-8 flex justify-between items-end">
@@ -76,7 +76,7 @@ export default function ViewerDashboard() {
           </div>
           <button 
             onClick={() => auth.signOut()}
-            className="text-[10px] font-black uppercase border border-brown-dark px-2 py-1 hover:bg-brown-dark hover:text-beige-retro cursor-pointer transition-colors"
+            className="text-[10px] font-black uppercase border-2 border-brown-dark px-2 py-1 cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] hover:bg-brown-dark hover:text-beige-retro active:translate-y-0 active:shadow-none"
           >
             DISCONNECT
           </button>
@@ -100,7 +100,7 @@ export default function ViewerDashboard() {
                 <button
                   key={trader.id}
                   onClick={() => router.push(`/view/${trader.id}`)}
-                  className="flex items-center justify-between p-6 border-2 border-brown-dark bg-beige-retro hover:bg-brown-dark hover:text-beige-retro transition-colors cursor-pointer group text-left"
+                  className="flex items-center justify-between p-6 border-2 border-brown-dark bg-beige-retro cursor-pointer group text-left transition-all duration-200 hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(74,55,33,1)] hover:bg-brown-dark hover:text-beige-retro active:translate-y-0 active:shadow-none"
                 >
                   <div>
                     <span className="block text-lg font-black uppercase tracking-tight group-hover:text-beige-retro">
@@ -136,11 +136,11 @@ export default function ViewerDashboard() {
                  name="publicId"
                  type="text" 
                  placeholder="ENTER_TRADER_ID"
-                 className="flex-grow bg-beige-retro border border-brown-dark p-2 text-xs font-bold outline-none uppercase"
+                 className="flex-grow bg-beige-retro border-2 border-brown-dark p-2 text-xs font-bold outline-none uppercase transition-all duration-200 focus:-translate-y-1 focus:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)]"
                />
                <button 
                  type="submit"
-                 className="bg-brown-dark text-beige-retro px-4 py-2 text-xs font-black hover:bg-brown-medium cursor-pointer"
+                 className="bg-brown-dark text-beige-retro px-4 py-2 border-2 border-brown-dark text-xs font-black cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] hover:bg-brown-medium active:translate-y-0 active:shadow-none"
                >
                  VIEW
                </button>
