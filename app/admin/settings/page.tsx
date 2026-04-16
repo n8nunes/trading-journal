@@ -75,7 +75,7 @@ export default function AccessSettings() {
   };
 
   return (
-    <div className="min-h-screen bg-beige-retro text-brown-dark p-6 md:p-12 font-mono">
+    <div className="min-h-screen bg-beige-retro text-brown-dark p-6 md:p-12 font-mono ">
       <div className="max-w-4xl mx-auto space-y-8">
         
         {/* Navigation Header */}
@@ -85,7 +85,7 @@ export default function AccessSettings() {
           </div>
           <button 
             type="button" onClick={() => router.push("/")} 
-            className="text-[10px] font-black bg-beige-retro text-brown-dark px-3 py-1 uppercase border-2 border-brown-dark hover:bg-brown-dark hover:text-beige-retro cursor-pointer transition-colors"
+            className="w-fit text-[10px] font-black bg-beige-retro text-brown-dark px-3 py-1 uppercase border-2 border-brown-dark hover:bg-brown-dark hover:text-beige-retro cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] active:translate-y-0 active:shadow-none"
           >
             {"< RETURN_TO_FEED"}
           </button>

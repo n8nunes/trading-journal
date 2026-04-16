@@ -86,7 +86,7 @@ export default function PublicFeed() {
   }
 
   return (
-    <main className="min-h-screen bg-beige-retro text-brown-dark p-6 md:p-12 font-mono">
+    <main className="min-h-screen bg-beige-retro text-brown-dark p-6 md:p-12 font-mono animate-fade-in-up">
       <div className="max-w-5xl mx-auto">
         
         {/* Navigation Header */}
@@ -99,19 +99,19 @@ export default function PublicFeed() {
                 <>
                   <button 
                     onClick={() => router.push("/dashboard")}
-                    className="w-fit text-[10px] font-black bg-beige-retro text-brown-dark px-3 py-1 uppercase border-2 border-brown-dark hover:bg-brown-dark hover:text-beige-retro cursor-pointer transition-colors"
+                    className="w-fit text-[10px] font-black bg-beige-retro text-brown-dark px-3 py-1 uppercase border-2 border-brown-dark hover:bg-brown-dark hover:text-beige-retro cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] active:translate-y-0 active:shadow-none"
                   >
                     [ VIEW_DASHBOARD ]
                   </button>
                   <button 
                     onClick={() => router.push("/admin/settings")}
-                    className="w-fit text-[10px] font-black bg-beige-retro text-brown-dark px-3 py-1 uppercase border-2 border-brown-dark hover:bg-brown-dark hover:text-beige-retro cursor-pointer transition-colors"
+                    className="w-fit text-[10px] font-black bg-beige-retro text-brown-dark px-3 py-1 uppercase border-2 border-brown-dark hover:bg-brown-dark hover:text-beige-retro cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] active:translate-y-0 active:shadow-none"
                   >
                     [ ACCESS_SETTINGS ]
                   </button>
                   <button 
                     onClick={() => router.push("/admin")}
-                    className="w-fit text-[10px] font-black bg-brown-dark text-beige-retro px-3 py-1 uppercase border-2 border-brown-dark hover:bg-brown-medium cursor-pointer transition-colors"
+                    className="w-fit text-[10px] font-black bg-brown-dark text-beige-retro px-3 py-1 uppercase border-2 border-brown-dark hover:bg-brown-medium cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] active:translate-y-0 active:shadow-none"
                   >
                     + Initialize_New_Log
                   </button>
@@ -120,16 +120,24 @@ export default function PublicFeed() {
             </div>
           </div>
 
-          <div className="flex border-2 border-brown-dark overflow-hidden bg-brown-medium">
+          <div className="flex border-2 border-brown-dark overflow-hidden w-fit shadow-[4px_4px_0px_0px_rgba(74,55,33,1)]">
             <button 
               onClick={() => { setView("list"); setSelectedDate(null); }}
-              className={`px-4 py-2 text-xs font-black cursor-pointer ${view === "list" ? "bg-brown-dark text-brown-medium" : "hover:bg-beige-muted text-brown-dark"}`}
+              className={`px-4 py-2 text-xs font-black cursor-pointer uppercase transition-all duration-150 ${
+                view === "list" 
+                  ? "bg-brown-dark text-brown-medium shadow-[inset_3px_3px_0px_0px_rgba(30,20,10,0.5)]" 
+                  : "bg-brown-medium text-brown-dark hover:bg-beige-muted"
+              }`}
             >
               LIST
             </button>
             <button 
               onClick={() => setView("calendar")}
-              className={`px-4 py-2 text-xs font-black border-l-2 border-brown-dark cursor-pointer ${view === "calendar" ? "bg-brown-dark text-brown-medium" : "hover:bg-beige-muted text-brown-dark"}`}
+              className={`px-4 py-2 text-xs font-black cursor-pointer uppercase border-l-2 border-brown-dark transition-all duration-150 ${
+                view === "calendar" 
+                  ? "bg-brown-dark text-brown-medium shadow-[inset_3px_3px_0px_0px_rgba(30,20,10,0.5)]" 
+                  : "bg-brown-medium text-brown-dark hover:bg-beige-muted"
+              }`}
             >
               CALENDAR
             </button>
@@ -137,13 +145,17 @@ export default function PublicFeed() {
         </header>
 
         {view === "calendar" && (
-          <div className="bg-beige-muted border-2 border-brown-dark p-8 shadow-[8px_8px_0px_0px_rgba(74,55,33,1)] mb-12">
+          <div className="bg-beige-muted border-2 border-brown-dark p-8 shadow-[8px_8px_0px_0px_rgba(74,55,33,1)] mb-12 animate-fade-in-up">
             <div className="flex justify-between items-center mb-8">
-              <button onClick={() => changeMonth(-1)} className="hover:text-brown-medium font-black cursor-pointer">{"< PREV"}</button>
-              <h2 className="text-xl font-black uppercase tracking-widest">
+              <button onClick={() => changeMonth(-1)} className="hover:text-brown-medium font-black cursor-pointer transition-transform duration-200 hover:-translate-x-1 active:translate-x-0">
+                {"< PREV"}
+              </button>
+              <h2 className="text-xl font-black uppercase tracking-widest transition-all">
                 {viewDate.toLocaleString('default', { month: 'long' })} {year}
               </h2>
-              <button onClick={() => changeMonth(1)} className="hover:text-brown-medium font-black cursor-pointer">{"NEXT >"}</button>
+              <button onClick={() => changeMonth(1)} className="hover:text-brown-medium font-black cursor-pointer transition-transform duration-200 hover:translate-x-1 active:translate-x-0">
+                {"NEXT >"}
+              </button>
             </div>
 
             <div className="grid grid-cols-7 gap-2 mb-4 text-center text-[10px] font-black uppercase text-brown-medium">
@@ -169,15 +181,15 @@ export default function PublicFeed() {
                   <div 
                     key={day}
                     onClick={() => hasLog && setSelectedDate(dateString)}
-                    className={`aspect-square border flex flex-col items-center justify-center transition-all relative
+                    className={`aspect-square border flex flex-col items-center justify-center transition-all duration-200 relative
                       ${hasLog 
                         ? isProfitable 
-                          ? "border-green-800 bg-green-100/40 cursor-pointer hover:bg-green-200/60" 
+                          ? "border-green-800 bg-green-100/40 cursor-pointer hover:bg-green-200/60 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(22,101,52,1)]" 
                           : isNegative 
-                            ? "border-red-800 bg-red-100/40 cursor-pointer hover:bg-red-200/60"
-                            : "border-brown-dark bg-brown-light/40 cursor-pointer hover:bg-brown-light"
+                            ? "border-red-800 bg-red-100/40 cursor-pointer hover:bg-red-200/60 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(153,27,27,1)]"
+                            : "border-brown-dark bg-brown-light/40 cursor-pointer hover:bg-brown-light hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)]"
                         : "border-brown-light/30 opacity-40 cursor-not-allowed"}
-                      ${isSelected ? "bg-brown-dark text-brown-medium ring-2 ring-offset-2 ring-brown-dark scale-105 z-10" : ""}
+                      ${isSelected ? "bg-brown-dark text-brown-medium ring-2 ring-offset-2 ring-brown-dark scale-105 z-10 !shadow-none !translate-y-0" : "hover:z-10"}
                     `}
                   >
                     <span className="text-xs font-black">{day}</span>
@@ -194,10 +206,10 @@ export default function PublicFeed() {
             </div>
 
             {selectedDate && (
-              <div className="mt-6 text-center">
+              <div className="mt-6 text-center animate-fade-in-up">
                 <button 
                   onClick={() => setSelectedDate(null)}
-                  className="text-[10px] border border-brown-dark px-3 py-1 uppercase font-black hover:bg-brown-dark hover:text-brown-medium cursor-pointer"
+                  className="text-[10px] border-2 border-brown-dark px-3 py-1 uppercase font-black hover:bg-brown-dark hover:text-brown-medium cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] active:translate-y-0 active:shadow-none"
                 >
                   Show All {viewDate.toLocaleString('default', { month: 'long' })} Entries
                 </button>
@@ -208,7 +220,7 @@ export default function PublicFeed() {
 
         <div className="space-y-16">
           {filteredLogs.length === 0 ? (
-            <div className="border-4 border-dashed border-brown-light p-20 text-center bg-beige-muted/50">
+            <div className="border-4 border-dashed border-brown-light p-20 text-center bg-beige-muted/50 animate-fade-in-up">
               <p className="text-brown-medium font-black uppercase tracking-[0.2em]">
                 {selectedDate ? `No session logs for ${new Date(selectedDate).toLocaleDateString()}` : "No Entries."}
               </p>
@@ -219,7 +231,7 @@ export default function PublicFeed() {
               return (
                 <article 
                   key={log.id} 
-                  className="border-2 border-brown-dark bg-beige-muted shadow-[8px_8px_0px_0px_rgba(74,55,33,1)] animate-in"
+                  className="border-2 border-brown-dark bg-beige-muted shadow-[8px_8px_0px_0px_rgba(74,55,33,1)] animate-in transition-all duration-300 hover:-translate-y-1 hover:shadow-[12px_12px_0px_0px_rgba(74,55,33,1)]"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div 
@@ -234,7 +246,7 @@ export default function PublicFeed() {
                         {log.daily_bias}
                       </span>
                     </div>
-                    <span className="text-xl font-black">
+                    <span className="text-xl font-black transition-transform duration-300">
                       {isExpanded ? "[—]" : "[+]"}
                     </span>
                   </div>

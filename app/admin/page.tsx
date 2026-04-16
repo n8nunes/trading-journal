@@ -134,7 +134,7 @@ export default function AdminDashboard() {
             <button 
               type="button" 
               onClick={() => router.push("/")} 
-              className="text-[10px] cursor-pointer border border-brown-dark px-3 py-1 hover:bg-brown-dark hover:text-beige-retro transition-colors font-black"
+              className="w-fit text-[10px] font-black bg-beige-retro text-brown-dark px-3 py-1 uppercase border-2 border-brown-dark hover:bg-brown-dark hover:text-beige-retro cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] active:translate-y-0 active:shadow-none"
             >
               ABORT_TO_FEED
             </button>
@@ -147,7 +147,7 @@ export default function AdminDashboard() {
             <label className="text-[10px] font-black uppercase tracking-widest text-brown-medium">// Daily_Bias</label>
             <input 
               required
-              className="w-full bg-beige-muted border-2 border-brown-dark p-3 outline-none focus:bg-white placeholder:opacity-30"
+              className="w-full bg-beige-muted border-2 border-brown-dark p-3 outline-none focus:bg-white placeholder:opacity-30 transition-all duration-200 focus:-translate-y-1 focus:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] outline-none"
               placeholder="e.g., BULLISH - HTF Liquidity Sweep"
               onChange={(e) => setDailyBias(e.target.value)}
             />
@@ -155,7 +155,7 @@ export default function AdminDashboard() {
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-brown-medium">// Red_Folder_News</label>
             <input 
-              className="w-full bg-beige-muted border-2 border-brown-dark p-3 outline-none focus:bg-white placeholder:opacity-30"
+              className="transition-all duration-200 focus:-translate-y-1 focus:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] outline-none w-full bg-beige-muted border-2 border-brown-dark p-3 outline-none focus:bg-white placeholder:opacity-30"
               placeholder="e.g., 10:30PM USD CPI (High Vol)"
               onChange={(e) => setNews(e.target.value)}
             />
@@ -182,7 +182,7 @@ export default function AdminDashboard() {
                   <input 
                     required
                     placeholder="Pair (e.g. EURUSD)"
-                    className="w-full bg-beige-retro border border-brown-light p-2 text-sm outline-none uppercase font-bold"
+                    className="transition-all duration-200 focus:-translate-y-1 focus:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] outline-none w-full bg-beige-retro border border-brown-light p-2 text-sm outline-none uppercase font-bold"
                     value={trade.pair}
                     onChange={(e) => handleTradeChange(index, "pair", e.target.value)}
                   />
@@ -191,7 +191,7 @@ export default function AdminDashboard() {
                     type="number" 
                     step="0.01"
                     placeholder="P/L Amount (%)"
-                    className="w-full bg-beige-retro border border-brown-light p-2 text-sm outline-none"
+                    className="transition-all duration-200 focus:-translate-y-1 focus:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] outline-none w-full bg-beige-retro border border-brown-light p-2 text-sm outline-none"
                     onChange={(e) => handleTradeChange(index, "pl", e.target.value)}
                   />
                   <div className="border border-brown-light p-3 bg-beige-retro">
@@ -199,7 +199,7 @@ export default function AdminDashboard() {
                     <input 
                       type="file" 
                       accept="image/*"
-                      className="text-[10px] w-full border border-brown-light file:bg-brown-dark file:text-beige-retro file:border-0 file:px-2 file:py-1 file:mr-4 file:uppercase file:font-black cursor-pointer"
+                      className="transition-all duration-200 focus:-translate-y-1 focus:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] outline-none text-[10px] w-full border border-brown-light file:bg-brown-dark file:text-beige-retro file:border-0 file:px-2 file:py-1 file:mr-4 file:uppercase file:font-black cursor-pointer"
                       onChange={(e) => handleTradeChange(index, "file", e.target.files?.[0])}
                     />
                   </div>
@@ -207,7 +207,7 @@ export default function AdminDashboard() {
                 <textarea 
                   required
                   placeholder="Confluences (iFVG, SMT Divergence, MSS...)"
-                  className="w-full bg-beige-retro border border-brown-light p-3 text-sm outline-none h-full min-h-[120px] resize-none"
+                  className="transition-all duration-200 focus:-translate-y-1 focus:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] outline-none w-full bg-beige-retro border border-brown-light p-3 text-sm outline-none h-full min-h-[120px] resize-none"
                   onChange={(e) => handleTradeChange(index, "confluences", e.target.value)}
                 />
               </div>
@@ -217,7 +217,7 @@ export default function AdminDashboard() {
           <button 
             type="button" 
             onClick={addTradeSlot}
-            className="w-full border-2 border-dashed border-brown-medium p-4 text-brown-medium hover:bg-brown-dark hover:text-beige-retro transition-all uppercase font-black text-xs cursor-pointer tracking-widest"
+            className="w-full border-2 border-dashed border-brown-medium p-4 text-brown-medium hover:bg-brown-dark hover:text-beige-retro transition-all uppercase font-black text-xs cursor-pointer tracking-widest hover:bg-brown-dark hover:text-beige-retro cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] active:translate-y-0 active:shadow-none"
           >
             + Initialize_New_Execution_Slot
           </button>
@@ -230,7 +230,7 @@ export default function AdminDashboard() {
             type="submit"
             disabled={loading}
             className={`
-              relative cursor-pointer w-full p-6 border-4 border-brown-dark font-black text-xl uppercase tracking-[0.4em] transition-all
+              relative cursor-pointer w-full p-6 border-4 border-brown-dark font-black text-xl uppercase hover:bg-brown-dark hover:text-beige-retro cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] active:translate-y-0 active:shadow-none
               ${loading 
                 ? "bg-brown-medium text-beige-retro translate-x-2 translate-y-2 cursor-wait" 
                 : "bg-brown-dark text-beige-retro hover:-translate-x-1 hover:-translate-y-1 active:translate-x-2 active:translate-y-2 shadow-none"}
