@@ -22,6 +22,7 @@ interface TradeEntry {
 export default function AdminDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [isRulesOpen, setIsRulesOpen] = useState(true);
   const [dailyBias, setDailyBias] = useState("");
   const [news, setNews] = useState("");
   const [trades, setTrades] = useState<TradeEntry[]>([
@@ -131,6 +132,13 @@ export default function AdminDashboard() {
         <header className="border-b-4 border-brown-dark pb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <h1 className="text-2xl font-black uppercase tracking-tighter">nfx // Session_Input_Terminal</h1>
           <div className="flex gap-2">
+            <button 
+              type="button" 
+              onClick={() => setIsRulesOpen(true)} 
+              className="w-fit text-[10px] font-black bg-brown-dark text-beige-retro px-3 py-1 uppercase border-2 border-brown-dark hover:bg-beige-retro hover:text-brown-dark cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] active:translate-y-0 active:shadow-none"
+            >
+              VIEW_RULES
+            </button>
             <button 
               type="button" 
               onClick={() => router.push("/")} 
@@ -247,6 +255,105 @@ export default function AdminDashboard() {
           </button>
         </div>
       </form>
+      <RulesModal isOpen={isRulesOpen} onClose={() => setIsRulesOpen(false)} />
+    </div>
+  );
+}
+
+// ==========================================
+// Rules Modal Component
+// ==========================================
+function RulesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-brown-dark/80 backdrop-blur-sm p-4 animate-in fade-in duration-200 font-mono">
+      
+      {/* Modal Square - Brutalist Style */}
+      <div className="bg-beige-retro border-4 border-brown-dark shadow-[8px_8px_0px_0px_rgba(74,55,33,1)] w-full max-w-lg p-6 relative flex flex-col max-h-[90vh]">
+        
+
+        {/* Header */}
+        <h2 className="text-xl font-black text-brown-dark mb-4 border-b-4 border-brown-dark pb-2 uppercase tracking-tighter shrink-0">
+          // Trading_Rules
+        </h2>
+
+        {/* Rules Content - Scrollable Area (Scrollbar Hidden) */}
+        <div className="space-y-4 overflow-y-auto flex-grow [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          
+          <div className="p-4 bg-beige-muted border-2 border-brown-dark">
+            <span className="text-[10px] font-black uppercase text-brown-medium block mb-1">RULE_01</span>
+            <p className="text-sm font-bold text-brown-dark leading-relaxed">
+               Check news and write down red folder events before checking charts.
+            </p>
+          </div>
+
+          <div className="p-4 bg-beige-muted border-2 border-brown-dark">
+            <span className="text-[10px] font-black uppercase text-brown-medium block mb-1">RULE_02</span>
+            <p className="text-sm font-bold text-brown-dark leading-relaxed">
+               Determine Daily Bias
+            </p>
+          </div>
+
+          <div className="p-4 bg-beige-muted border-2 border-brown-dark">
+            <span className="text-[10px] font-black uppercase text-brown-medium block mb-1">RULE_03</span>
+            <p className="text-sm font-bold text-brown-dark leading-relaxed">
+               Valid pairs: EURUSD | GBPUSD | XAUUSD | XAGUSD
+            </p>
+          </div>
+          
+          {/* RULE 04 - WITH SUB-RULES */}
+          <div className="p-4 bg-beige-muted border-2 border-brown-dark">
+            <span className="text-[10px] font-black uppercase text-brown-medium block mb-1">RULE_04</span>
+            <p className="text-sm font-bold text-brown-dark leading-relaxed mb-3">
+               Must be trading after TDO
+            </p>
+            {/* Sub-rules Container */}
+            <div className="space-y-2 pl-4 border-l-2 border-brown-medium">
+              <div className="flex gap-2">
+                <span className="text-xs font-black text-brown-medium shrink-0">A.</span>
+                <p className="text-xs font-bold text-brown-dark">If above TDO and bias is bearish -{">"} shorts.</p>
+              </div>
+              <div className="flex gap-2">
+                <span className="text-xs font-black text-brown-medium shrink-0">B.</span>
+                <p className="text-xs font-bold text-brown-dark">If below TDO and bias is bullish -{">"} longs.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 bg-beige-muted border-2 border-brown-dark">
+            <span className="text-[10px] font-black uppercase text-brown-medium block mb-1">RULE_05</span>
+            <p className="text-sm font-bold text-brown-dark leading-relaxed">
+               Must be in an iFVG in the same timeframe we are trading from.
+            </p>
+          </div>
+
+          <div className="p-4 bg-beige-muted border-2 border-brown-dark">
+            <span className="text-[10px] font-black uppercase text-brown-medium block mb-1">RULE_06</span>
+            <p className="text-sm font-bold text-brown-dark leading-relaxed">
+               HP iFVG is one that has broken structure.
+            </p>
+          </div>
+
+          <div className="p-4 bg-beige-muted border-2 border-brown-dark">
+            <span className="text-[10px] font-black uppercase text-brown-medium block mb-1">RULE_07</span>
+            <p className="text-sm font-bold text-brown-dark leading-relaxed">
+               Wait for a PSP / very clear SSMT before entering a trade.
+            </p>
+          </div>
+
+        </div>
+
+        {/* Footer */}
+        <div className="mt-6 pt-2 shrink-0">
+          <button
+            onClick={onClose}
+            className="w-full text-center text-sm font-black bg-brown-dark text-beige-retro px-4 py-3 uppercase border-2 border-brown-dark hover:bg-beige-retro hover:text-brown-dark cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] active:translate-y-0 active:shadow-none"
+          >
+            ACKNOWLEDGE_&_PROCEED
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
