@@ -11,11 +11,9 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAttempting, setIsAttempting] = useState(false);
 
-  // Listen for auth state changes to route users automatically
   useEffect(() => {
     const unsub = auth.onAuthStateChanged((user) => {
       if (user) {
-        // Route based on Admin UID match
         if (user.uid === ADMIN_UID) {
           router.push("/dashboard");
         } else {
@@ -36,8 +34,6 @@ export default function LoginPage() {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      // We don't need a router.push() here because the onAuthStateChanged 
-      // listener above will detect the login and route them perfectly.
     } catch (err: any) {
       console.error("Login error:", err);
       setError("AUTHENTICATION_FAILED: " + (err.message || "Unknown Error"));
@@ -47,8 +43,8 @@ export default function LoginPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-beige-retro font-mono">
-        <div className="text-center p-8 border-2 border-brown-dark shadow-[8px_8px_0px_0px_rgba(74,55,33,1)] bg-beige-muted">
+      <div className="flex items-center justify-center min-h-screen bg-beige-retro font-mono p-6">
+        <div className="text-center p-8 border-2 border-brown-dark shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] md:shadow-[8px_8px_0px_0px_rgba(74,55,33,1)] bg-beige-muted w-full max-w-md">
           <p className="text-brown-dark font-black tracking-widest uppercase animate-pulse">
             // AUTHENTICATING_SESSION...
           </p>
@@ -60,7 +56,6 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-beige-retro flex flex-col items-center justify-center p-6 font-mono text-brown-dark animate-fade-in-up">
       
-      {/* Global Error Display */}
       {error && (
         <div className="mb-6 w-full max-w-4xl p-4 border-2 border-red-800 bg-red-100/40 text-red-800 text-sm font-black uppercase tracking-widest text-center shadow-[4px_4px_0px_0px_rgba(153,27,27,1)]">
           {error}
@@ -68,11 +63,11 @@ export default function LoginPage() {
       )}
 
       {/* Split Login Container */}
-      <div className="w-full max-w-5xl border-4 border-brown-dark flex flex-col md:flex-row shadow-[12px_12px_0px_0px_rgba(74,55,33,1)]">
+      <div className="w-full max-w-5xl border-4 border-brown-dark flex flex-col md:flex-row shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] md:shadow-[12px_12px_0px_0px_rgba(74,55,33,1)]">
         
         {/* Trader Side (Left / Top) */}
         <div className="flex-1 p-10 md:p-16 bg-brown-dark text-beige-retro border-b-4 md:border-b-0 md:border-r-4 border-brown-dark flex flex-col items-center justify-center text-center">
-          <h2 className="text-4xl font-black uppercase tracking-tighter mb-2">TRADER_LOGIN</h2>
+          <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter mb-2">TRADER_LOGIN</h2>
           <p className="text-xs font-black uppercase tracking-widest text-brown-medium mb-12">
             // ADMIN_ACCESS_ONLY
           </p>
@@ -88,7 +83,7 @@ export default function LoginPage() {
 
         {/* Viewer Side (Right / Bottom) */}
         <div className="flex-1 p-10 md:p-16 bg-beige-muted text-brown-dark flex flex-col items-center justify-center text-center">
-          <h2 className="text-4xl font-black uppercase tracking-tighter mb-2">VIEWER_LOGIN</h2>
+          <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter mb-2">VIEWER_LOGIN</h2>
           <p className="text-xs font-black uppercase tracking-widest text-brown-medium mb-12">
             // GUESTS_&_PUBLIC_ACCESS
           </p>
