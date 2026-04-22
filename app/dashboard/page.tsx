@@ -13,14 +13,18 @@ export default function TraderDashboard() {
   const [logs, setLogs] = useState<any[]>([]);
   const [range, setRange] = useState<Range>("30D");
   const [isAdmin, setIsAdmin] = useState(false);
+  
+  // New state for share link functionality
+  const [userId, setUserId] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async (user) => {
       if (user) {
         setIsAdmin(user.uid === ADMIN_UID);
+        setUserId(user.uid); // Capture UID for the share link
         
         try {
-          // Fetching all logs for the user to process them client-side based on range
           const q = query(
             collection(db, "daily_logs"),
             where("userId", "==", user.uid),
@@ -40,10 +44,20 @@ export default function TraderDashboard() {
     return () => unsub();
   }, [router]);
 
-  // Calculate statistics based on selected range
+  // Function to generate and copy the link
+  const handleShare = () => {
+    if (!userId) return;
+    const shareUrl = `${window.location.origin}/view/${userId}`;
+    
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000); // Reset button text after 2 seconds
+    });
+  };
+
   const stats = useMemo(() => {
     const now = new Date();
-    let cutoff = new Date(0); // ALL
+    let cutoff = new Date(0); 
     
     if (range === "7D") cutoff = new Date(now.setDate(now.getDate() - 7));
     if (range === "30D") cutoff = new Date(now.setDate(now.getDate() - 30));
@@ -66,7 +80,6 @@ export default function TraderDashboard() {
       const logDate = log.date?.toDate().toDateString();
       const isToday = logDate === todayStr;
 
-      // Calculate bias tally
       const bias = (log.daily_bias || "").toUpperCase();
       if (bias.includes("BEAR") || bias.includes("SHORT")) bearishCount++;
       if (bias.includes("BULL") || bias.includes("LONG")) bullishCount++;
@@ -114,7 +127,6 @@ export default function TraderDashboard() {
     <main className="min-h-screen bg-beige-retro text-brown-dark p-6 md:p-12 font-mono">
       <div className="max-w-5xl mx-auto space-y-12">
         
-        {/* Header & Navigation */}
         <header className="border-b-4 border-brown-dark pb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div className="flex flex-col gap-2">
             <h1 className="text-3xl font-black tracking-tighter uppercase">MAIN_DASHBOARD</h1>
@@ -123,7 +135,19 @@ export default function TraderDashboard() {
             </p>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {/* New Share Link Button */}
+            <button 
+              onClick={handleShare}
+              className={`w-fit text-[10px] font-black uppercase border-2 border-brown-dark px-3 py-1 cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] active:translate-y-0 active:shadow-none ${
+                copied 
+                  ? "bg-green-800 text-beige-retro border-green-800" 
+                  : "bg-beige-retro text-brown-dark hover:bg-brown-dark hover:text-beige-retro"
+              }`}
+            >
+              {copied ? "[ LINK_COPIED! ]" : "[ SHARE_LINK ]"}
+            </button>
+            
             <button 
               onClick={() => router.push("/")}
               className="w-fit text-[10px] font-black bg-beige-retro text-brown-dark px-3 py-1 uppercase border-2 border-brown-dark hover:bg-brown-dark hover:text-beige-retro cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] active:translate-y-0 active:shadow-none"
