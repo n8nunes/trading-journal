@@ -29,6 +29,26 @@ export default function AdminDashboard() {
     { pair: "EURUSD", pl: "", confluences: "", file: null }
   ]);
 
+  // Autofill News
+  useEffect(() => {
+    async function fetchNews() {
+      try {
+        const res = await fetch("/api/news");
+        if (res.ok) {
+          const result = await res.json();
+          if (result.data && result.data !== "No Red Folder News") {
+            setNews(result.data);
+          } else if (result.data === "No Red Folder News") {
+            setNews("None today");
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch news:", err);
+      }
+    }
+    fetchNews();
+  }, []);
+
   // Auth Guard
   useEffect(() => {
     const unsub = auth.onAuthStateChanged((user) => {
@@ -165,6 +185,7 @@ export default function AdminDashboard() {
             <input 
               className="transition-all duration-200 focus:-translate-y-1 focus:shadow-[4px_4px_0px_0px_rgba(74,55,33,1)] outline-none w-full bg-beige-muted border-2 border-brown-dark p-3 outline-none focus:bg-white placeholder:opacity-30"
               placeholder="e.g., 10:30PM USD CPI (High Vol)"
+              value={news}
               onChange={(e) => setNews(e.target.value)}
             />
           </div>
@@ -267,7 +288,7 @@ function RulesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-brown-dark/80 backdrop-blur-sm p-4 animate-in fade-in duration-200 font-mono">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-brown-dark/80 backdrop-blur-lg p-4 animate-in fade-in duration-200 font-mono">
       
       {/* Modal Square - Brutalist Style */}
       <div className="bg-beige-retro border-4 border-brown-dark shadow-[8px_8px_0px_0px_rgba(74,55,33,1)] w-full max-w-lg p-6 relative flex flex-col max-h-[90vh]">
