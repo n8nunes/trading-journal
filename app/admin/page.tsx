@@ -8,8 +8,15 @@ import {
   addDoc, 
   updateDoc, 
   doc, 
+  getDoc,
   serverTimestamp 
 } from "firebase/firestore";
+
+interface TradingRule {
+  id: string;
+  text: string;
+  subRules: string[];
+}
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 interface TradeEntry {
@@ -28,6 +35,7 @@ export default function AdminDashboard() {
   const [trades, setTrades] = useState<TradeEntry[]>([
     { pair: "EURUSD", pl: "", confluences: "", file: null }
   ]);
+  const [tradingRules, setTradingRules] = useState<TradingRule[]>([]);
 
   // Autofill News
   useEffect(() => {
@@ -49,11 +57,20 @@ export default function AdminDashboard() {
     fetchNews();
   }, []);
 
-  // Auth Guard
+  // Auth Guard + Fetch Rules
   useEffect(() => {
-    const unsub = auth.onAuthStateChanged((user) => {
+    const unsub = auth.onAuthStateChanged(async (user) => {
       if (!user || user.uid !== ADMIN_UID) {
         router.push("/login");
+      } else {
+        try {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists() && userDoc.data().tradingRules?.length > 0) {
+            setTradingRules(userDoc.data().tradingRules);
+          }
+        } catch (err) {
+          console.error("Failed to fetch trading rules:", err);
+        }
       }
     });
     return () => unsub();
@@ -276,7 +293,7 @@ export default function AdminDashboard() {
           </button>
         </div>
       </form>
-      <RulesModal isOpen={isRulesOpen} onClose={() => setIsRulesOpen(false)} />
+      <RulesModal isOpen={isRulesOpen} onClose={() => setIsRulesOpen(false)} rules={tradingRules} />
     </div>
   );
 }
@@ -284,88 +301,48 @@ export default function AdminDashboard() {
 // ==========================================
 // Rules Modal Component
 // ==========================================
-function RulesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function RulesModal({ isOpen, onClose, rules }: { isOpen: boolean; onClose: () => void; rules: TradingRule[] }) {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-brown-dark/80 backdrop-blur-lg p-4 animate-in fade-in duration-200 font-mono">
-      
-      {/* Modal Square - Brutalist Style */}
       <div className="bg-beige-retro border-4 border-brown-dark shadow-[8px_8px_0px_0px_rgba(74,55,33,1)] w-full max-w-lg p-6 relative flex flex-col max-h-[90vh]">
-        
-
-        {/* Header */}
         <h2 className="text-xl font-black text-brown-dark mb-4 border-b-4 border-brown-dark pb-2 uppercase tracking-tighter shrink-0">
           // Trading_Rules
         </h2>
 
-        {/* Rules Content - Scrollable Area (Scrollbar Hidden) */}
         <div className="space-y-4 overflow-y-auto flex-grow [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          
-          <div className="p-4 bg-beige-muted border-2 border-brown-dark">
-            <span className="text-[10px] font-black uppercase text-brown-medium block mb-1">RULE_01</span>
-            <p className="text-sm font-bold text-brown-dark leading-relaxed">
-               Check news and write down red folder events before checking charts.
-            </p>
-          </div>
-
-          <div className="p-4 bg-beige-muted border-2 border-brown-dark">
-            <span className="text-[10px] font-black uppercase text-brown-medium block mb-1">RULE_02</span>
-            <p className="text-sm font-bold text-brown-dark leading-relaxed">
-               Determine Daily Bias
-            </p>
-          </div>
-
-          <div className="p-4 bg-beige-muted border-2 border-brown-dark">
-            <span className="text-[10px] font-black uppercase text-brown-medium block mb-1">RULE_03</span>
-            <p className="text-sm font-bold text-brown-dark leading-relaxed">
-               Valid pairs: EURUSD | GBPUSD | XAUUSD | XAGUSD
-            </p>
-          </div>
-          
-          {/* RULE 04 - WITH SUB-RULES */}
-          <div className="p-4 bg-beige-muted border-2 border-brown-dark">
-            <span className="text-[10px] font-black uppercase text-brown-medium block mb-1">RULE_04</span>
-            <p className="text-sm font-bold text-brown-dark leading-relaxed mb-3">
-               Must be trading after TDO
-            </p>
-            {/* Sub-rules Container */}
-            <div className="space-y-2 pl-4 border-l-2 border-brown-medium">
-              <div className="flex gap-2">
-                <span className="text-xs font-black text-brown-medium shrink-0">A.</span>
-                <p className="text-xs font-bold text-brown-dark">If above TDO and bias is bearish -{">"} shorts.</p>
-              </div>
-              <div className="flex gap-2">
-                <span className="text-xs font-black text-brown-medium shrink-0">B.</span>
-                <p className="text-xs font-bold text-brown-dark">If below TDO and bias is bullish -{">"} longs.</p>
-              </div>
+          {rules.length === 0 ? (
+            <div className="p-8 border-2 border-dashed border-brown-light text-center">
+              <p className="text-sm font-black text-brown-medium uppercase tracking-widest mb-2">NO_RULES_DEFINED</p>
+              <p className="text-xs text-brown-medium">Go to Settings → Trading Rules to define your rules.</p>
             </div>
-          </div>
-
-          <div className="p-4 bg-beige-muted border-2 border-brown-dark">
-            <span className="text-[10px] font-black uppercase text-brown-medium block mb-1">RULE_05</span>
-            <p className="text-sm font-bold text-brown-dark leading-relaxed">
-               Must be in an iFVG in the same timeframe we are trading from.
-            </p>
-          </div>
-
-          <div className="p-4 bg-beige-muted border-2 border-brown-dark">
-            <span className="text-[10px] font-black uppercase text-brown-medium block mb-1">RULE_06</span>
-            <p className="text-sm font-bold text-brown-dark leading-relaxed">
-               HP iFVG is one that has broken structure.
-            </p>
-          </div>
-
-          <div className="p-4 bg-beige-muted border-2 border-brown-dark">
-            <span className="text-[10px] font-black uppercase text-brown-medium block mb-1">RULE_07</span>
-            <p className="text-sm font-bold text-brown-dark leading-relaxed">
-               Wait for a PSP / very clear SSMT before entering a trade.
-            </p>
-          </div>
-
+          ) : (
+            rules.map((rule, index) => (
+              <div key={rule.id} className="p-4 bg-beige-muted border-2 border-brown-dark">
+                <span className="text-[10px] font-black uppercase text-brown-medium block mb-1">
+                  RULE_{String(index + 1).padStart(2, "0")}
+                </span>
+                <p className="text-sm font-bold text-brown-dark leading-relaxed">
+                  {rule.text}
+                </p>
+                {rule.subRules?.length > 0 && (
+                  <div className="space-y-2 pl-4 border-l-2 border-brown-medium mt-3">
+                    {rule.subRules.map((sub, subIdx) => (
+                      <div key={subIdx} className="flex gap-2">
+                        <span className="text-xs font-black text-brown-medium shrink-0">
+                          {String.fromCharCode(65 + subIdx)}.
+                        </span>
+                        <p className="text-xs font-bold text-brown-dark">{sub}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))
+          )}
         </div>
 
-        {/* Footer */}
         <div className="mt-6 pt-2 shrink-0">
           <button
             onClick={onClose}
